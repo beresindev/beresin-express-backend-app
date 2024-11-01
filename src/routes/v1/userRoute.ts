@@ -1,9 +1,10 @@
 import express from 'express';
-import { getUser } from '@controllers/userController';
-import { authenticateToken } from '@middlewares/authMiddleware';
+import { getUserProfile } from '../../controllers/userController';
+import asyncHandler from '../../handlers/asyncHandler';
+import { authenticateToken } from '../../middlewares/authMiddleware';
 
 const router = express.Router();
 
-router.get('/user/:id', authenticateToken, getUser);
+router.get('/profile', authenticateToken, asyncHandler(getUserProfile));
 
 export default router;
