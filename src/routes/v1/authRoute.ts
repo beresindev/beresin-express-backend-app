@@ -1,13 +1,11 @@
-import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import { login, register } from '../../controllers/authController';
+import asyncHandler from '../../handlers/asyncHandler';
+import { runValidation, validateRegister } from '../../middlewares/validationMiddleware';
+import express from 'express';
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-	const token = req.header('Authorization')?.split(' ')[1];
-	if (!token) return res.sendStatus(401);
+const router = express.Router();
 
-	jwt.verify(token, process.env.JWT_SECRET!, (err, user) => {
-		if (err) return res.sendStatus(403);
-		req.user = user;
-		next();
-	});
-};
+router.post('/register', validateRegister, runValidation, asyncHandler(register));
+router.post('/login', asyncHandler(login));
+
+export default router;
