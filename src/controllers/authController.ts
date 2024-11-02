@@ -24,7 +24,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 			role: 'User',
 		});
 
-		const token = generateToken({ id: newUser.id, email: newUser.email });
+		// Generate token dengan role
+		const token = generateToken({ id: newUser.id, email: newUser.email, role: newUser.role });
 
 		res.status(201).json({
 			status: 'success',
@@ -63,7 +64,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 			return;
 		}
 
-		const token = generateToken({ id: user.id, email: user.email });
+		// Generate token dengan role
+		const token = generateToken({ id: user.id, email: user.email, role: user.role });
 
 		res.json({
 			status: 'success',
@@ -73,6 +75,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 				id: user.id,
 				username: user.username,
 				email: user.email,
+				role: user.role, // Pastikan role disertakan di respons login
 			},
 		});
 	} catch (error) {
