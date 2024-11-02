@@ -4,15 +4,15 @@ import jwt from 'jsonwebtoken';
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
 	const token = req.header('Authorization')?.split(' ')[1];
 	if (!token) {
-		res.status(401).json({ message: 'Access Denied' });
-		return; // stop further execution without returning any value
+		res.status(401).json({ status: 'error', message: 'Access Denied' });
+		return;
 	}
 
 	try {
 		const verified = jwt.verify(token, process.env.JWT_SECRET!);
-		(req as any).user = verified;
-		next(); // call next without returning any value
+		(req as any).user = verified; // Simpan informasi user dari payload token
+		next();
 	} catch (error) {
-		res.status(403).json({ message: 'Invalid Token' });
+		res.status(403).json({ status: 'error', message: 'Invalid Token' });
 	}
 };
