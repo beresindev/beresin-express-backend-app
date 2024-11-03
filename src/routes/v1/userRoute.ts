@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserProfile } from '../../controllers/userController';
+import { getUserProfile } from '../../controllers/user/userController';
 import asyncHandler from '../../handlers/asyncHandler';
 import { authenticateToken } from '../../middlewares/authMiddleware';
 
