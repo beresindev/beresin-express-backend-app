@@ -15,9 +15,13 @@ import adminServiceRoute from './routes/v1/admin/adminServiceRoute';
 import categoryRoute from './routes/v1/categoryRoute';
 import imageRoute from './routes/v1/user/userImageRoute';
 import serviceRoute from './routes/v1/serviceRoute';
+import statusRoute from './routes/v1/statusRoute';
 
 const app = express();
 app.use(express.json());
+
+// Route status
+app.use('/api', statusRoute);
 
 // Route untuk autentikasi
 app.use('/api/v1/auth', authRoute);
