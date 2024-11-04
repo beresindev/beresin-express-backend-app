@@ -5,7 +5,7 @@ import serviceModel from '../../models/serviceModel';
 
 // Create Service with Images
 export const createServiceWithImages = asyncHandler(async (req: Request, res: Response) => {
-	const { name_of_service, category_id, description, isSubscription } = req.body;
+	const { name_of_service, category_id, description } = req.body;
 	const userId = (req as any).user.id;
 
 	console.log('Request Body:', req.body); // Tambahan log untuk debugging
@@ -25,7 +25,6 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 		name_of_service,
 		category_id: Number(category_id), // Konversi category_id ke number untuk memastikan tipe data benar
 		description,
-		isSubscription,
 		status: 'pending',
 	});
 
@@ -82,7 +81,7 @@ export const getUserServices = asyncHandler(async (req: Request, res: Response) 
 // Update User Service
 export const updateUserService = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
-	const { name_of_service, category_id, description, isSubscription } = req.body;
+	const { name_of_service, category_id, description } = req.body;
 	const userId = (req as any).user.id;
 
 	console.log(`User ${userId} updating service ${id}`);
@@ -98,7 +97,6 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 		name_of_service,
 		category_id,
 		description,
-		isSubscription,
 	});
 
 	res.json({ status: 'success', service: updatedService });
