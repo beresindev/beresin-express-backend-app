@@ -1,8 +1,3 @@
-
-# Project Title
-
-A brief description of what this project does and who it's for
-
 # beresin-express-backend-app
 
 ## Backend of BeresIn
@@ -21,7 +16,7 @@ The project provides a backend for the BeresIn platform, featuring user authenti
 - **Framework:** [Express](https://expressjs.com)
 - **Query Builder:** [Knex](https://knexjs.org)
 - **RDBMS:** [PostgreSQL](https://www.postgresql.org)
-- [JWT](https://jwt.io/) Authentication / Authorization
+- **Authentication / Authorization:** [JWT](https://jwt.io/)
 
 ### Installation Guide for `beresindev-beresin-express-backend-app`
 
