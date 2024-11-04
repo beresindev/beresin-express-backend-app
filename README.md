@@ -1,3 +1,13 @@
+<div align="center">
+  <a href="https://hoppscotch.io">
+    <img
+      src="https://github.com/user-attachments/assets/b5d64eaf-c8c3-4c63-ab9d-625221f06fa4"
+      alt="Hoppscotch"
+      height="64"
+    />
+  </a>
+</div>
+
 # beresin-express-backend-app
 
 ## Backend of BeresIn
@@ -7,8 +17,25 @@ This is an [Express.js](https://expressjs.com) project, written in [TypeScript](
 The project provides a backend for the BeresIn platform, featuring user authentication, admin and user services management, and category CRUD operations, with a focus on secure data handling and a well-structured API.
 ## Authors
 
-- [@teamberesin](https://github.com/teamberesin)
 - [@beresindev](https://github.com/beresindev)
+- [@teamberesin](https://github.com/teamberesin)
+
+### Meet Beresin Team
+
+**Product Owner:**
+- [Muhammad Farhan Mustafa](github.com/farhanmustafa15)
+
+**UI/UX Design:**
+- Danny Kurniawan
+- Azmi Nadhia Asyarifa
+
+**Fullstack Website:**
+- [Muhammad Daniel Krisna Halim Putra](https://github.com/bforbilly24)
+
+**Frontend Mobile:**
+- [Adam Ghazy Al Falah](https://github.com/Adam-Ghazy)
+- [Habibi Daffa Filzana Nurus Syahada](https://github.com/habibidaffaa)
+
 ## Tech Stack
 
 - **Programming Language / Superset:** [Typescript](https://www.typescriptlang.org)
@@ -16,7 +43,7 @@ The project provides a backend for the BeresIn platform, featuring user authenti
 - **Framework:** [Express](https://expressjs.com)
 - **Query Builder:** [Knex](https://knexjs.org)
 - **RDBMS:** [PostgreSQL](https://www.postgresql.org)
-- **Authentication / Authorization:** [JWT](https://jwt.io/)
+- [JWT](https://jwt.io/) Authentication / Authorization
 
 ### Installation Guide for `beresindev-beresin-express-backend-app`
 
@@ -121,6 +148,10 @@ cp .env.example .env
 ```bash
 openssl rand -base64 32
 ```
+
+*Output must be like this:*
+**3y9KcY0Dl1KzT9frFyM7hO0NBWwO3F5yPiB3uF9xUho=**
+
 
 ### Update src/index.ts for production
 ```bash
@@ -526,7 +557,6 @@ Returns all services belonging to the authenticated user, unique to each user.
 | `name_of_service`    | `string` | **Required**. Name of the service  |
 | `category_id`        | `integer`| **Required**. ID of the category   |
 | `description`        | `string` | **Required**. Description of service |
-| `isSubscription`     | `boolean`| **Required**. Subscription status  |
 | `images`     | `String`| **Required**. Images of service  |
 
 **Note**: This endpoint requires `multipart/form-data` for file upload. The `images` field accepts up to 2 image files.
@@ -537,7 +567,6 @@ Returns all services belonging to the authenticated user, unique to each user.
   "name_of_service": " Jasa Mengajar Next.js",
   "category_id": 3,
   "description": "Mengajar Coding dari Javascript dasar, Typescript, hingga React.Js",
-  "isSubscription": false,
   "images": Background.png, BeresIn Flow.png
 }
 ```
@@ -582,7 +611,6 @@ Returns all services belonging to the authenticated user, unique to each user.
 | `name_of_service`    | `string` | **Required**. Name of the service  |
 | `category_id`        | `integer`| **Required**. ID of the category   |
 | `description`        | `string` | **Required**. Description of service |
-| `isSubscription`     | `boolean`| **Required**. Subscription status  |
 
 #### **Example Request Body**:
 ```json
@@ -590,7 +618,6 @@ Returns all services belonging to the authenticated user, unique to each user.
   "name_of_service": "Jasa Perbaikan",
   "category_id": 1,
   "description": "Perbaikan Laptop, Hp, dan Komputer",
-  "isSubscription": true
 }
 ```
 
@@ -737,5 +764,5 @@ This project is used by the following companies:
 
 ## Support
 
-For support, email teambersine@gmail.com.
+For support, email teambersin@gmail.com.
 
