@@ -7,20 +7,25 @@ interface Image {
 }
 
 const imageModel = {
-	// Menyimpan gambar ke dalam tabel 'images'
+	// Buat entri gambar baru
 	create: async (imageData: Partial<Image>): Promise<Image> => {
-		const [newImage] = await db<Image>('images').insert(imageData).returning('*'); // Ganti 'image' ke 'images'
+		const [newImage] = await db<Image>('images').insert(imageData).returning('*');
 		return newImage;
 	},
 
-	// Mencari gambar berdasarkan service_id di tabel 'images'
+	// Temukan semua gambar berdasarkan ID layanan
 	findByServiceId: async (serviceId: number): Promise<Image[]> => {
-		return db<Image>('images').where({ service_id: serviceId }); // Ganti 'image' ke 'images'
+		return db<Image>('images').where({ service_id: serviceId });
 	},
 
-	// Menghapus gambar berdasarkan service_id di tabel 'images'
+	// Temukan semua gambar berdasarkan daftar ID layanan
+	findByServiceIds: async (serviceIds: number[]): Promise<Image[]> => {
+		return db<Image>('images').whereIn('service_id', serviceIds);
+	},
+
+	// Hapus gambar berdasarkan ID layanan
 	deleteByServiceId: async (serviceId: number): Promise<number> => {
-		return db<Image>('images').where({ service_id: serviceId }).del(); // Ganti 'image' ke 'images'
+		return db<Image>('images').where({ service_id: serviceId }).del();
 	},
 };
 

@@ -1,4 +1,3 @@
-// models/serviceModel.ts
 import db from '../configs/knexConfig';
 
 interface Service {
@@ -15,9 +14,11 @@ interface Service {
 
 const serviceModel = {
 	create: async (serviceData: Partial<Service>): Promise<Service> => {
+		console.log('Saving Service Data:', serviceData);
 		const [newService] = await db<Service>('service').insert(serviceData).returning('*');
 		return newService;
 	},
+
 	findAll: async (): Promise<Service[]> => {
 		return db<Service>('service').select('*');
 	},
