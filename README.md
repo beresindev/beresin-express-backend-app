@@ -7,7 +7,9 @@ A brief description of what this project does and who it's for
 
 ## Backend of BeresIn
 
-This is an [Express.js](https://expressjs.com) project with a [PostgreSQL](https://www.postgresql.org) database using [Knex.js](https://knexjs.org) for query building.
+This is an [Express.js](https://expressjs.com) project, written in [TypeScript](https://www.typescriptlang.org), with a [PostgreSQL](https://www.postgresql.org) database using [Knex.js](https://knexjs.org) for query building.
+
+The project provides a backend for the BeresIn platform, featuring user authentication, admin and user services management, and category CRUD operations, with a focus on secure data handling and a well-structured API.
 ## Authors
 
 - [@teamberesin](https://github.com/teamberesin)
@@ -112,12 +114,92 @@ npm start
 ---
 
 This guide provides full setup instructions for the backend application using **Express**, **JWT** for authentication, **Knex** for database migrations, and **PostgreSQL** as the database. Ensure **PostgreSQL** is configured and running.
+## Deployment
+
+To deploy this project run
+
+### Copy .env.example into .env
+```bash
+cp .env.example .env
+```
+### Generate secret key JWT
+```bash
+openssl rand -base64 32
+```
+
+### Update src/index.ts for production
+```bash
+import dotenv from 'dotenv';
+import app from './app';
+
+dotenv.config({ path: '.env' });
+
+const PORT = parseInt(process.env.PORT || '3000', 10); // Konversi PORT ke number
+const HOST = '0.0.0.0'; // Dengarkan di semua alamat IP agar dapat diakses secara publik
+
+app.listen(PORT, HOST, () => {
+	console.log(`Server running on http://${HOST}:${PORT}`);
+});
+```
+
+### add in package.json
+```bash
+"scripts": {
+    "start": "node dist/index.js"
+}
+```
+
+## Install dependencies for production
+
+To run Node.js applications (including compiled TypeScript applications) on a VPS continuously, you can use PM2, which is designed to run Node.js applications in production mode, keeping them running even after a server crash or restart. Here are the complete steps:
+
+## Install PM2
+```bash
+npm install -g pm2
+```
+
+## Compile the application to JavaScript first:
+```bash
+npx tsc
+```
+
+### using TypeScript and the entry point file is directly in src/index.js, run:
+```bash
+pm2 start dist/index.js --name "my-app"
+```
+
+### To ensure the application continues running after a VPS restart, enable the PM2 startup feature:
+```bash
+pm2 startup
+```
 ## API Reference
 
-#### Get 
+### 0. Miscellaneous
+
+#### **Endpoint: GET /profile**
+
+| Parameter | Type     | Description               |
+| --------- | -------- | ------------------------- |
+| None      | -        | No parameters required    |
+
+Health check to verify database connection, size, latency, and errors.
+
+#### **Example Response**:
+```json
+{
+  "status": "success",
+  "message": "Database connected successfully",
+  "database": {
+    "ready": true,
+    "size": "9329 kB",
+    "latency": "31 ms"
+  }
+}
+```
+
 ### 1. Authentication
 
-#### **Endpoint: POST /auth/login**
+#### **Endpoint: POST /v1/auth/login**
 
 | Parameter      | Type     | Description                    |
 | -------------- | -------- | ------------------------------ |
@@ -149,7 +231,7 @@ This guide provides full setup instructions for the backend application using **
 
 ---
 
-#### **Endpoint: POST /auth/register**
+#### **Endpoint: POST /v1/auth/register**
 
 | Parameter        | Type     | Description                    |
 | ---------------- | -------- | ------------------------------ |
@@ -191,7 +273,9 @@ This guide provides full setup instructions for the backend application using **
 
 ### 2. Admin
 
-#### **Endpoint: GET /admin/services**
+#### **Endpoint: GET /v1/admin/services**
+
+Displays all services regardless of status (`accept`, `pending`, `decline`).
 
 | Parameter  | Type     | Description                   |
 | ---------- | -------- | ----------------------------- |
@@ -230,7 +314,7 @@ This guide provides full setup instructions for the backend application using **
 
 ---
 
-#### **Endpoint: PATCH /admin/services/:id/status**
+#### **Endpoint: PATCH /v1/admin/services/:id/status**
 
 | Parameter    | Type     | Description                          |
 | ------------ | -------- | ------------------------------------ |
@@ -264,7 +348,7 @@ This guide provides full setup instructions for the backend application using **
 
 ---
 
-#### **Endpoint: DELETE /admin/services/:id**
+#### **Endpoint: DELETE /v1/admin/services/:id**
 
 | Parameter  | Type     | Description                   |
 | ---------- | -------- | ----------------------------- |
@@ -280,7 +364,7 @@ This guide provides full setup instructions for the backend application using **
 
 ---
 
-#### **Endpoint: GET /admin/category**
+#### **Endpoint: GET /v1/admin/category**
 
 | Parameter  | Type     | Description                   |
 | ---------- | -------- | ----------------------------- |
@@ -309,7 +393,7 @@ This guide provides full setup instructions for the backend application using **
 
 ---
 
-#### **Endpoint: POST /admin/category**
+#### **Endpoint: POST /v1/admin/category**
 
 | Parameter            | Type     | Description                        |
 | -------------------- | -------- | ---------------------------------- |
@@ -336,7 +420,7 @@ This guide provides full setup instructions for the backend application using **
 
 ---
 
-#### **Endpoint: PUT /admin/category/:id**
+#### **Endpoint: PUT /v1/admin/category/:id**
 
 | Parameter            | Type     | Description                        |
 | -------------------- | -------- | ---------------------------------- |
@@ -363,7 +447,7 @@ This guide provides full setup instructions for the backend application using **
 
 ---
 
-#### **Endpoint: DELETE /admin/category/:id**
+#### **Endpoint: DELETE /v1/admin/category/:id**
 
 | Parameter  | Type     | Description                   |
 | ---------- | -------- | ----------------------------- |
@@ -379,11 +463,39 @@ This guide provides full setup instructions for the backend application using **
 
 ### 3. User
 
-#### **Endpoint: GET /user/services**
+### **Endpoint: GET /v1/user/profile**
 
 | Parameter  | Type     | Description                   |
 | ---------- | -------- | ----------------------------- |
-| `api_key`  | `string` | **Required**. User API key    |
+| `api_key`  | `string` | **Required**. User API key   |
+
+Retrieves the profile information of the authenticated user.
+
+#### **Example Response**:
+```json
+{
+  "status": "success",
+  "message": "User profile retrieved successfully",
+  "user": {
+    "id": 2,
+    "username": "testuser",
+    "name": "Test User",
+    "email": "testuser@example.com",
+    "phone": "1234567890",
+    "role": "User",
+    "created_at": "2024-11-01T17:51:43.312Z",
+    "updated_at": "2024-11-01T17:51:43.312Z"
+  }
+}
+```
+
+#### **Endpoint: GET /v1/user/services**
+
+| Parameter  | Type     | Description                   |
+| ---------- | -------- | ----------------------------- |
+| `api_key`  | `string` | **Required**. User API key   |
+
+Returns all services belonging to the authenticated user, unique to each user.
 
 #### **Example Response**:
 ```json
@@ -391,15 +503,19 @@ This guide provides full setup instructions for the backend application using **
   "status": "success",
   "services": [
     {
-      "id": 2,
-      "created_at": "2024-11-02T19:19:18.752Z",
-      "updated_at": "2024-11-02T19:19:18.752Z",
-      "user_id": 3,
+      "id": 1,
+      "created_at": "2024-11-01T18:36:42.777Z",
+      "updated_at": "2024-11-01T18:36:42.777Z",
+      "user_id": 2,
       "isSubscription": true,
-      "name_of_service": "Jasa Laundry",
-      "category_id": 2,
-      "description": "Laundry Baju, Kemeja kecuali CD",
-      "status": "pending"
+      "name_of_service": "Jasa Design",
+      "category_id": 1,
+      "description": "Jasa design web dan aplikasi",
+      "status": "accept",
+      "images": [
+        "services/uploads/images/1730568201772-WhatsApp Image 2024-11-02 at 17.58.44.jpeg",
+        "services/uploads/images/1730568201773-ttd-halim.png"
+      ]
     }
   ]
 }
@@ -407,7 +523,7 @@ This guide provides full setup instructions for the backend application using **
 
 ---
 
-#### **Endpoint: POST /user/services**
+#### **Endpoint: POST /v1/user/services**
 
 | Parameter            | Type     | Description                        |
 | -------------------- | -------- | ---------------------------------- |
@@ -416,14 +532,18 @@ This guide provides full setup instructions for the backend application using **
 | `category_id`        | `integer`| **Required**. ID of the category   |
 | `description`        | `string` | **Required**. Description of service |
 | `isSubscription`     | `boolean`| **Required**. Subscription status  |
+| `images`     | `String`| **Required**. Images of service  |
 
-#### **Example Request Body**:
+**Note**: This endpoint requires `multipart/form-data` for file upload. The `images` field accepts up to 2 image files.
+
+**Example Request Body**:
 ```json
 {
-  "name_of_service": "Jasa Perbaikan Laptop/PC/HP",
-  "category_id": 1,
-  "description": "Jasa perbaikan laptop, pc, dan hp dengan harga murah",
-  "isSubscription": true
+  "name_of_service": " Jasa Mengajar Next.js",
+  "category_id": 3,
+  "description": "Mengajar Coding dari Javascript dasar, Typescript, hingga React.Js",
+  "isSubscription": false,
+  "images": Background.png, BeresIn Flow.png
 }
 ```
 
@@ -432,22 +552,34 @@ This guide provides full setup instructions for the backend application using **
 {
   "status": "success",
   "service": {
-    "id": 2,
-    "created_at": "2024-11-02T19:19:18.752Z",
-    "updated_at": "2024-11-02T19:19:18.752Z",
-    "user_id": 3,
-    "isSubscription": true,
-    "name_of_service": "Jasa Perbaikan Laptop/PC/HP",
-    "category_id": 1,
-    "description": "Jasa perbaikan laptop, pc, dan hp dengan harga murah",
+    "id": 11,
+    "created_at": "2024-11-04T09:44:53.352Z",
+    "updated_at": "2024-11-04T09:44:53.352Z",
+    "user_id": 2,
+    "isSubscription": false,
+    "name_of_service": "Jasa Mengajar Next.js",
+    "category_id": 3,
+    "description": "Mengajar Coding dari Javascript dasar, Typescript, hingga React.Js",
     "status": "pending"
-  }
+  },
+  "images": [
+    {
+      "id": 13,
+      "image": "services/uploads/images/1730713493349-Background.png",
+      "service_id": 11
+    },
+    {
+      "id": 14,
+      "image": "services/uploads/images/1730713493349-BeresIn Flow.drawio.png",
+      "service_id": 11
+    }
+  ]
 }
 ```
 
 ---
 
-#### **Endpoint: PUT /user/services/:id**
+#### **Endpoint: PUT /v1/user/services/:id**
 
 | Parameter            | Type     | Description                        |
 | -------------------- | -------- | ---------------------------------- |
@@ -535,6 +667,8 @@ This guide provides full setup instructions for the backend application using **
 ### 4. Public
 
 #### **Endpoint: GET /services/all**
+
+Only services with `status: accept` are displayed.
 
 | Parameter | Type     | Description               |
 | --------- | -------- | ------------------------- |
