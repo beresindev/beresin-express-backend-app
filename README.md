@@ -1,11 +1,9 @@
 <div align="center">
-  <a href="https://hoppscotch.io">
     <img
       src="https://github.com/user-attachments/assets/b5d64eaf-c8c3-4c63-ab9d-625221f06fa4"
       alt="Hoppscotch"
       height="64"
     />
-  </a>
 </div>
 
 # beresin-express-backend-app
@@ -43,7 +41,7 @@ The project provides a backend for the BeresIn platform, featuring user authenti
 - **Framework:** [Express](https://expressjs.com)
 - **Query Builder:** [Knex](https://knexjs.org)
 - **RDBMS:** [PostgreSQL](https://www.postgresql.org)
-- [JWT](https://jwt.io/) Authentication / Authorization
+- **Authentication / Authorization:** [JWT](https://jwt.io/) 
 
 ### Installation Guide for `beresindev-beresin-express-backend-app`
 
@@ -140,11 +138,11 @@ This guide provides full setup instructions for the backend application using **
 
 To deploy this project run
 
-### Copy .env.example into .env
+### 1. Copy .env.example into .env
 ```bash
 cp .env.example .env
 ```
-### Generate secret key JWT
+### 2. Generate JWT_SECRET
 ```bash
 openssl rand -base64 32
 ```
@@ -152,8 +150,7 @@ openssl rand -base64 32
 *Output must be like this:*
 **3y9KcY0Dl1KzT9frFyM7hO0NBWwO3F5yPiB3uF9xUho=**
 
-
-### Update src/index.ts for production
+### 3. Update src/index.ts for production
 ```bash
 import dotenv from 'dotenv';
 import app from './app';
@@ -168,36 +165,61 @@ app.listen(PORT, HOST, () => {
 });
 ```
 
-### add in package.json
+### 4. add in package.json
 ```bash
 "scripts": {
     "start": "node dist/index.js"
 }
 ```
+### 5. Rename Configuration ecosystem.config.js.example into ecosystem.config.js
 
-## Install dependencies for production
+The ecosystem.config.js file is used with PM2 (a process manager for Node.js applications) to manage and automate various aspects of running your application in production. Then fill as needed.
+```bash
+module.exports = {
+  apps: [
+    {
+      name: "beresin-express-backend-app",
+      script: "dist/index.js",
+      env: {
+        DB_HOST: "TOBEMODIFIED",
+        DB_USER: "TOBEMODIFIED",
+        DB_PASSWORD: "TOBEMODIFIED",
+        DB_NAME: "TOBEMODIFIED",
+        DB_PORT: TOBEMODIFIED,
+        PORT: TOBEMODIFIED,
+      },
+      env_production: {
+        NODE_ENV: "production"
+      }
+    }
+  ]
+};
+```
+
+### 6. Install dependencies for production
 
 To run Node.js applications (including compiled TypeScript applications) on a VPS continuously, you can use PM2, which is designed to run Node.js applications in production mode, keeping them running even after a server crash or restart. Here are the complete steps:
 
-## Install PM2
+### 7. Install PM2
 ```bash
 npm install -g pm2
 ```
 
-## Compile the application to JavaScript first:
+### 8. Compile the application to JavaScript first:
 ```bash
 npx tsc
 ```
 
-### using TypeScript and the entry point file is directly in src/index.js, run:
+### 9. using TypeScript and the entry point file is directly in src/index.js, run:
 ```bash
 pm2 start dist/index.js --name "my-app"
 ```
 
-### To ensure the application continues running after a VPS restart, enable the PM2 startup feature:
+### 10. To ensure the application continues running after a VPS restart, enable the PM2 startup feature:
 ```bash
 pm2 startup
 ```
+
 ## API Reference
 
 ### 0. Miscellaneous
