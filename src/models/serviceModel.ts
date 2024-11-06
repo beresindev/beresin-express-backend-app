@@ -3,7 +3,7 @@ import db from '../configs/knexConfig';
 interface Service {
 	id: number;
 	user_id: number;
-	isSubscription: boolean;
+	isSubscription?: boolean;
 	name_of_service: string;
 	category_id: number;
 	description: string;

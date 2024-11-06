@@ -13,7 +13,7 @@ import adminServiceRoute from './routes/v1/admin/adminServiceRoute';
 
 // Routes umum
 import categoryRoute from './routes/v1/categoryRoute';
-import imageRoute from './routes/v1/user/userImageRoute';
+// import imageRoute from './routes/v1/user/userImageRoute';
 import serviceRoute from './routes/v1/serviceRoute';
 import statusRoute from './routes/v1/statusRoute';
 
@@ -30,7 +30,7 @@ app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/user', userRoute);                 // Mengelola profil user
 app.use('/api/v1/user/services', userServiceRoute); // CRUD layanan milik user
 app.use('/api/v1/user/category', userCategoryRoute); // Mengelola kategori layanan untuk user
-app.use('/api/v1/user/image', imageRoute);                // Mengelola upload gambar
+// app.use('/api/v1/user/image', imageRoute);                // Mengelola upload gambar
 
 // Route umum yang bisa diakses semua pengguna
 app.use('/api/v1/services', serviceRoute); // Melihat semua layanan yang disetujui

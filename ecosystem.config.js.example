@@ -1,0 +1,19 @@
+module.exports = {
+  apps: [
+    {
+      name: "beresin-express-backend-app",
+      script: "dist/index.js",
+      env: {
+        DB_HOST: "TOBEMODIFIED",
+        DB_USER: "TOBEMODIFIED",
+        DB_PASSWORD: "TOBEMODIFIED",
+        DB_NAME: "TOBEMODIFIED",
+        DB_PORT: TOBEMODIFIED,
+        PORT: TOBEMODIFIED,
+      },
+      env_production: {
+        NODE_ENV: "production"
+      }
+    }
+  ]
+};
