@@ -13,6 +13,9 @@ interface User {
 }
 
 const userModel = {
+	findAll: async (): Promise<User[]> => {
+		return db<User>('users').select('*');
+	},
 	findByEmail: async (email: string): Promise<User | undefined> => {
 		return db<User>('users').where({ email }).first();
 	},
@@ -26,10 +29,18 @@ const userModel = {
 	findById: async (id: number): Promise<User | undefined> => {
 		return db<User>('users').where({ id }).first();
 	},
+
+	findByIds: async (userIds: number[]): Promise<User[]> => {
+		return db<User>('users').whereIn('id', userIds).select('id', 'phone'); // Hanya ambil id dan phone
+	},
+
 	updateById: async (id: number, updates: Partial<User>): Promise<User | undefined> => {
-		const updatedData = { ...updates, updated_at: new Date() }; // Menambahkan updated_at
+		const updatedData = { ...updates, updated_at: new Date() };
 		const [updatedUser] = await db<User>('users').where({ id }).update(updatedData).returning('*');
 		return updatedUser;
+	},
+	deleteById: async (id: number): Promise<number> => {
+		return db<User>('users').where({ id }).del();
 	},
 };
 
