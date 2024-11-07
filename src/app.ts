@@ -10,10 +10,10 @@ import categoryRoute from './routes/v1/categoryRoute';
 // import imageRoute from './routes/v1/user/userImageRoute';
 import serviceRoute from './routes/v1/serviceRoute';
 import statusRoute from './routes/v1/statusRoute';
-import userCategoryRoute from './routes/v1/user/userCategoryRoute';
 // Routes untuk User
+import userCategoryRoute from './routes/v1/user/userCategoryRoute';
 import userServiceRoute from './routes/v1/user/userServiceRoute';
-import userRoute from './routes/v1/userRoute';
+import userRoute from './routes/v1/user/userRoute';
 
 const app = express();
 app.use(express.json());
