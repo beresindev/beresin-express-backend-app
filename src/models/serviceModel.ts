@@ -14,7 +14,6 @@ interface Service {
 
 const serviceModel = {
 	create: async (serviceData: Partial<Service>): Promise<Service> => {
-		console.log('Saving Service Data:', serviceData);
 		const [newService] = await db<Service>('service').insert(serviceData).returning('*');
 		return newService;
 	},
@@ -22,7 +21,7 @@ const serviceModel = {
 	findAll: async (): Promise<Service[]> => {
 		return db<Service>('service').select('*');
 	},
-	// models/serviceModel.ts
+
 	findById: async (id: number): Promise<Service | undefined> => {
 		return db<Service>('service').where({ id }).first();
 	},
@@ -30,17 +29,25 @@ const serviceModel = {
 	findByUserId: async (userId: number): Promise<Service[]> => {
 		return db<Service>('service').where({ user_id: userId }).select('*');
 	},
+
 	updateById: async (id: number, updates: Partial<Service>): Promise<Service | undefined> => {
 		const [updatedService] = await db<Service>('service').where({ id }).update(updates).returning('*');
 		return updatedService;
 	},
+
 	deleteById: async (id: number): Promise<number> => {
 		return db<Service>('service').where({ id }).del();
 	},
+
+	deleteByUserId: async (userId: number): Promise<number> => {
+		return db<Service>('service').where({ user_id: userId }).del();
+	},
+
 	updateStatus: async (id: number, status: 'accept' | 'decline' | 'pending'): Promise<Service | undefined> => {
 		const [updatedService] = await db<Service>('service').where({ id }).update({ status }).returning('*');
 		return updatedService;
 	},
+
 	findAllApproved: async (): Promise<Service[]> => {
 		return db<Service>('service').where({ status: 'accept' }).select('*');
 	},
