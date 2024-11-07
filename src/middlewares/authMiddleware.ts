@@ -9,8 +9,9 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 		return;
 	}
 
+	// Periksa apakah token ada di blacklist
 	if (isTokenBlacklisted(token)) {
-		res.status(403).json({ status: 'error', message: 'Token has been revoked' });
+		res.status(403).json({ status: 'error', message: 'Token has been logged out. Please log in again.' });
 		return;
 	}
 
@@ -19,6 +20,10 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 		(req as any).user = verified;
 		next();
 	} catch (error) {
-		res.status(403).json({ status: 'error', message: 'Invalid Token' });
+		if (error instanceof jwt.TokenExpiredError) {
+			res.status(401).json({ status: 'error', message: 'Token expired. Please log in again.' });
+		} else {
+			res.status(403).json({ status: 'error', message: 'Invalid Token' });
+		}
 	}
 };
