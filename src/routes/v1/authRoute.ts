@@ -1,7 +1,7 @@
+import express from 'express';
 import { login, logout, register } from '../../controllers/authController';
 import asyncHandler from '../../handlers/asyncHandler';
 import { runValidation, validateRegister } from '../../middlewares/validationMiddleware';
-import express from 'express';
 
 const router = express.Router();
 

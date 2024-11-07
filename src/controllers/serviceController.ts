@@ -3,6 +3,9 @@ import { Request, Response } from 'express';
 import asyncHandler from '../handlers/asyncHandler';
 import imageModel from '../models/imageModel';
 import serviceModel from '../models/serviceModel';
+import userModel from '../models/userModel';
+
+// Import userModel untuk mengambil data pengguna
 
 export const getAllApprovedServices = asyncHandler(async (_req: Request, res: Response) => {
 	try {
@@ -17,14 +20,23 @@ export const getAllApprovedServices = asyncHandler(async (_req: Request, res: Re
 		// Ambil semua gambar yang terkait dengan layanan yang disetujui
 		const images = await imageModel.findByServiceIds(serviceIds);
 
-		// Gabungkan gambar dengan layanan berdasarkan service_id
-		const servicesWithImages = services.map((service) => ({
-			...service,
-			images: images.filter((image) => image.service_id === service.id).map((img) => img.image),
-		}));
+		// Ambil data pengguna berdasarkan user_id pada setiap layanan
+		const userIds = services.map((service) => service.user_id);
+		const users = await userModel.findByIds(userIds); // Menambahkan fungsi findByIds di userModel
 
-		console.log(`Approved services found: ${servicesWithImages.length}`);
-		res.status(200).json({ status: 'success', services: servicesWithImages });
+		// Gabungkan gambar dan nomor telepon dengan layanan berdasarkan service_id
+		const servicesWithImagesAndPhone = services.map((service) => {
+			const serviceImages = images.filter((image) => image.service_id === service.id).map((img) => img.image);
+			const user = users.find((user) => user.id === service.user_id); // Temukan data pengguna berdasarkan user_id
+			return {
+				...service,
+				images: serviceImages,
+				phone: user ? user.phone : null, // Tambahkan nomor telepon pengguna
+			};
+		});
+
+		console.log(`Approved services found: ${servicesWithImagesAndPhone.length}`);
+		res.status(200).json({ status: 'success', services: servicesWithImagesAndPhone });
 	} catch (error) {
 		console.error('Get All Approved Services error:', error);
 		res.status(500).json({ status: 'error', message: 'Internal server error' });
