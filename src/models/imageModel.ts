@@ -27,6 +27,11 @@ const imageModel = {
 	deleteByServiceId: async (serviceId: number): Promise<number> => {
 		return db<Image>('images').where({ service_id: serviceId }).del();
 	},
+
+	// Hapus semua gambar berdasarkan daftar ID layanan
+	deleteByServiceIds: async (serviceIds: number[]): Promise<number> => {
+		return db<Image>('images').whereIn('service_id', serviceIds).del();
+	},
 };
 
 export default imageModel;
