@@ -1,0 +1,14 @@
+import express from 'express';
+import { createUser, deleteUser, getAllUsers, updateUser } from '../../../controllers/admin/userController';
+import { authenticateToken } from '../../../middlewares/authMiddleware';
+import { allowRoles } from '../../../middlewares/roleMIddleware';
+
+const router = express.Router();
+
+// Rute untuk mengelola pengguna, hanya untuk admin
+router.get('/', authenticateToken, allowRoles(['admin']), getAllUsers);
+router.post('/', authenticateToken, allowRoles(['admin']), createUser);
+router.put('/:id', authenticateToken, allowRoles(['admin']), updateUser);
+router.delete('/:id', authenticateToken, allowRoles(['admin']), deleteUser);
+
+export default router;
