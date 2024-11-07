@@ -1,6 +1,6 @@
 // routes/v1/admin/adminServiceRoute.ts
 import express from 'express';
-import { getAllServices, updateServiceStatus, deleteServiceByAdmin } from '../../../controllers/admin/serviceController';
+import { deleteServiceByAdmin, getAllServices, updateServiceStatus } from '../../../controllers/admin/serviceController';
 import { authenticateToken } from '../../../middlewares/authMiddleware';
 import { allowRoles } from '../../../middlewares/roleMIddleware';
 
