@@ -5,7 +5,6 @@
       height="64"
     />
 </div>
-
 # beresin-express-backend-app
 
 ## Backend of BeresIn
@@ -33,7 +32,6 @@ The project provides a backend for the BeresIn platform, featuring user authenti
 **Frontend Mobile:**
 - [Adam Ghazy Al Falah](https://github.com/Adam-Ghazy)
 - [Habibi Daffa Filzana Nurus Syahada](https://github.com/habibidaffaa)
-
 ## Tech Stack
 
 - **Programming Language / Superset:** [Typescript](https://www.typescriptlang.org)
@@ -41,9 +39,7 @@ The project provides a backend for the BeresIn platform, featuring user authenti
 - **Framework:** [Express](https://expressjs.com)
 - **Query Builder:** [Knex](https://knexjs.org)
 - **RDBMS:** [PostgreSQL](https://www.postgresql.org)
-- **Authentication / Authorization:** [JWT](https://jwt.io/) 
-
-### Installation Guide for `beresindev-beresin-express-backend-app`
+- **Authentication / Authorization:** [JWT](https://jwt.io/) ### Installation Guide for `beresindev-beresin-express-backend-app`
 
 #### **Step 1: Clone the Project**
 
@@ -133,16 +129,15 @@ npm start
 
 ---
 
-This guide provides full setup instructions for the backend application using **Express**, **JWT** for authentication, **Knex** for database migrations, and **PostgreSQL** as the database. Ensure **PostgreSQL** is configured and running.
-## Deployment
+This guide provides full setup instructions for the backend application using **Express**, **JWT** for authentication, **Knex** for database migrations, and **PostgreSQL** as the database. Ensure **PostgreSQL** is configured and running.## Deployment
 
 To deploy this project run
 
-### 1. Copy .env.example into .env
+#### 1. Copy .env.example into .env
 ```bash
 cp .env.example .env
 ```
-### 2. Generate JWT_SECRET
+#### 2. Generate JWT_SECRET
 ```bash
 openssl rand -base64 32
 ```
@@ -150,7 +145,7 @@ openssl rand -base64 32
 *Output must be like this:*
 **3y9KcY0Dl1KzT9frFyM7hO0NBWwO3F5yPiB3uF9xUho=**
 
-### 3. Update src/index.ts for production
+#### 3. Update src/index.ts for production
 ```bash
 import dotenv from 'dotenv';
 import app from './app';
@@ -165,13 +160,13 @@ app.listen(PORT, HOST, () => {
 });
 ```
 
-### 4. add in package.json
+#### 4. add in package.json
 ```bash
 "scripts": {
     "start": "node dist/index.js"
 }
 ```
-### 5. Rename Configuration ecosystem.config.js.example into ecosystem.config.js
+#### 5. Rename Configuration ecosystem.config.js.example into ecosystem.config.js
 
 The ecosystem.config.js file is used with PM2 (a process manager for Node.js applications) to manage and automate various aspects of running your application in production. Then fill as needed.
 ```bash
@@ -196,26 +191,26 @@ module.exports = {
 };
 ```
 
-### 6. Install dependencies for production
+#### 6. Install dependencies for production
 
 To run Node.js applications (including compiled TypeScript applications) on a VPS continuously, you can use PM2, which is designed to run Node.js applications in production mode, keeping them running even after a server crash or restart. Here are the complete steps:
 
-### 7. Install PM2
+#### 7. Install PM2
 ```bash
 npm install -g pm2
 ```
 
-### 8. Compile the application to JavaScript first:
+#### 8. Compile the application to JavaScript first:
 ```bash
 npx tsc
 ```
 
-### 9. using TypeScript and the entry point file is directly in src/index.js, run:
+#### 9. using TypeScript and the entry point file is directly in src/index.js, run:
 ```bash
 pm2 start dist/index.js --name "my-app"
 ```
 
-### 10. To ensure the application continues running after a VPS restart, enable the PM2 startup feature:
+#### 10. To ensure the application continues running after a VPS restart, enable the PM2 startup feature:
 ```bash
 pm2 startup
 ```
@@ -332,30 +327,20 @@ Displays all services regardless of status (`accept`, `pending`, `decline`).
 #### **Example Response**:
 ```json
 {
-  "status": "success",
-  "services": [
-    {
-      "id": 1,
-      "created_at": "2024-11-01T18:36:42.777Z",
-      "updated_at": "2024-11-01T18:36:42.777Z",
-      "user_id": 2,
-      "isSubscription": true,
-      "name_of_service": "Jasa Design",
-      "category_id": 1,
-      "description": "Jasa design web dan aplikasi",
-      "status": "decline"
-    },
-    {
-      "id": 2,
-      "created_at": "2024-11-02T19:19:18.752Z",
-      "updated_at": "2024-11-02T19:19:18.752Z",
-      "user_id": 3,
-      "isSubscription": true,
-      "name_of_service": "Jasa Laundry",
-      "category_id": 2,
-      "description": "Laundry Baju, Kemeja kecuali CD",
-      "status": "pending"
-    }
+  {
+    "id": 1,
+    "created_at": "2024-11-06T05:20:14.398Z",
+    "updated_at": "2024-11-06T05:20:14.398Z",
+    "user_id": 2,
+    "isSubscription": false,
+    "name_of_service": "Title_4",
+    "category_id": 3,
+    "description": "Desc_4",
+    "status": "pending",
+    "images": [
+      "services/uploads/images/1730873116083-new_logo_beresin.png",
+      "services/uploads/images/1730873116084-old_logo_beresin.png"
+    ] 
   ]
 }
 ```
@@ -509,33 +494,204 @@ Displays all services regardless of status (`accept`, `pending`, `decline`).
 }
 ```
 
+---
+
+#### **Endpoint: GET /admin/users**
+
+| Parameter | Type     | Description             |
+| --------- | -------- | ----------------------- |
+| Bearer    | `string` | **Required**. Admin JWT |
+
+Retrieves a list of all users.
+
+**Example Response**:
+```json
+{
+  "status": "success",
+  "users": [
+    {
+      "id": 1,
+      "created_at": "2024-11-01T17:39:05.344Z",
+      "updated_at": "2024-11-01T17:39:05.344Z",
+      "username": "admin",
+      "name": "Administrator",
+      "email": "firstadmin@mail.com",
+      "phone": "6285156644103",
+      "password": "$2b$10$VecX3hAWsU/PrHIneJkmOuCe145VdQ1pqnnNqemJq/xpu9PE2N6vu",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "created_at": "2024-11-01T17:51:43.312Z",
+      "updated_at": "2024-11-07T09:06:18.308Z",
+      "username": "testuser",
+      "name": "Test User",
+      "email": "testuser@mail.com",
+      "phone": "081235595153",
+      "password": "$2b$10$sL/dFpk.K2qI6Ep88g3AtuSiBqNHAwe45Jh.eqOMnSn3gTcVZ/216",
+      "role": "User"
+    }
+  ]
+}
+```
+
+---
+
+#### **Endpoint: POST /admin/users**
+
+| Parameter       | Type     | Description             |
+| --------------- | -------- | ----------------------- |
+| Bearer          | `string` | **Required**. Admin JWT |
+| `username`      | `string` | **Required**. Username  |
+| `name`          | `string` | **Required**. Full name |
+| `email`         | `string` | **Required**. Email     |
+| `phone`         | `string` | **Required**. Phone     |
+| `password`      | `string` | **Required**. Password  |
+| `role`          | `string` | **Required**. User role |
+
+**Example Request Body**:
+```json
+{
+  "username": "newuser",
+  "name": "New User",
+  "email": "newuser@example.com",
+  "phone": "1234567890",
+  "password": "password123",
+  "role": "User"
+}
+```
+
+**Example Response**:
+```json
+{
+  "status": "success",
+  "message": "User created successfully",
+  "user": {
+    "id": 9,
+    "created_at": "2024-11-07T17:29:40.276Z",
+    "updated_at": "2024-11-07T17:29:40.276Z",
+    "username": "newuser",
+    "name": "New User",
+    "email": "newuser@example.com",
+    "phone": "1234567890",
+    "password": "$2b$10$Pauozt5F6Tp.Xqn5jwRkieIj4DCiXAV2tXLZFIISGgHYrBI4bVRJW",
+    "role": "User"
+  }
+}
+```
+
+---
+
+#### **Endpoint: PUT /admin/users/:id**
+
+| Parameter       | Type     | Description               |
+| --------------- | -------- | ------------------------- |
+| Bearer          | `string` | **Required**. Admin JWT   |
+| `username`      | `string` | **Required**. New username |
+| `name`          | `string` | **Required**. New name    |
+| `email`         | `string` | **Required**. New email   |
+| `phone`         | `string` | **Required**. New phone   |
+| `password`      | `string` | **Required**. New password|
+| `role`          | `string` | **Required**. New role    |
+
+**Example Request Body**:
+```json
+{
+  "username": "testuser3",
+  "name": "Test User 3",
+  "email": "testuser3@mail.com",
+  "phone": "08123345445789",
+  "password": "testpassword",
+  "role": "User"
+}
+```
+
+**Example Response**:
+```json
+{
+  "status": "success",
+  "message": "User updated successfully",
+  "user": {
+    "id": 9,
+    "created_at": "2024-11-07T17:29:40.276Z",
+    "updated_at": "2024-11-07T17:31:25.751Z",
+    "username": "testuser3",
+    "name": "Test User 3",
+    "email": "testuser3@mail.com",
+    "phone": "08123345445789",
+    "password": "$2b$10$tWFd84.ayz7YAjQJAW1BJu3tppdBnoLvrpzIntEQeUrnTrLeq/W3O",
+    "role": "User"
+  }
+}
+```
+
+---
+
+#### **Endpoint: DELETE /admin/users/:id**
+
+| Parameter | Type     | Description             |
+| --------- | -------- | ----------------------- |
+| Bearer    | `string` | **Required**. Admin JWT |
+
+Deletes a user and their related data.
+
+**Example Response**:
+```json
+{
+  "status": "success",
+  "message": "User 'Test User 3' and related services and images deleted successfully"
+}
+```
+
+---
+
 ### 3. User
 
-### **Endpoint: GET /v1/user/profile**
+#### **Endpoint: GET /user/profile**
 
-| Parameter  | Type     | Description                   |
-| ---------- | -------- | ----------------------------- |
-| `api_key`  | `string` | **Required**. User API key   |
+| Parameter | Type     | Description             |
+| --------- | -------- | ----------------------- |
+| Bearer    | `string` | **Required**. User JWT  |
 
-Retrieves the profile information of the authenticated user.
+Retrieves profile information of the authenticated user.
 
-#### **Example Response**:
+**Example Response**:
 ```json
 {
   "status": "success",
   "message": "User profile retrieved successfully",
   "user": {
-    "id": 2,
-    "username": "testuser",
-    "name": "Test User",
-    "email": "testuser@example.com",
-    "phone": "1234567890",
+    "id": 6,
+    "username": "seconduser",
+    "name": "Second User",
+    "email": "second@example.com",
+    "phone": "086289789612",
     "role": "User",
-    "created_at": "2024-11-01T17:51:43.312Z",
-    "updated_at": "2024-11-01T17:51:43.312Z"
+    "created_at": "2024-11-07T09:11:15.577Z",
+    "updated_at": "2024-11-07T09:11:15.577Z"
   }
 }
 ```
+
+---
+
+#### **Endpoint: DELETE /user/deleteAccount**
+
+| Parameter | Type     | Description             |
+| --------- | -------- | ----------------------- |
+| Bearer    | `string` | **Required**. User JWT  |
+
+Deletes the user account and all related data.
+
+**Example Response**:
+```json
+{
+  "status": "success",
+  "message": "Account and all related content deleted successfully"
+}
+```
+
+---
 
 #### **Endpoint: GET /v1/user/services**
 
@@ -571,29 +727,29 @@ Returns all services belonging to the authenticated user, unique to each user.
 
 ---
 
-#### **Endpoint: POST /v1/user/services**
+#### **Endpoint: POST /user/services**
 
-| Parameter            | Type     | Description                        |
-| -------------------- | -------- | ---------------------------------- |
-| `api_key`            | `string` | **Required**. User API key         |
-| `name_of_service`    | `string` | **Required**. Name of the service  |
-| `category_id`        | `integer`| **Required**. ID of the category   |
-| `description`        | `string` | **Required**. Description of service |
-| `images`     | `String`| **Required**. Images of service  |
+| Parameter          | Type      | Description                  |
+| ------------------ | --------- | ---------------------------- |
+| Bearer             | `string`  | **Required**. User JWT       |
+| `name_of_service`  | `string`  | **Required**. Name of the service |
+| `category_id`      | `integer` | **Required**. ID of the category |
+| `description`      | `string`  | **Required**. Description of the service |
+| `images`           | `String`  | **Required**. Images of the service |
 
 **Note**: This endpoint requires `multipart/form-data` for file upload. The `images` field accepts up to 2 image files.
 
 **Example Request Body**:
 ```json
 {
-  "name_of_service": " Jasa Mengajar Next.js",
+  "name_of_service": "Jasa Mengajar Next.js",
   "category_id": 3,
   "description": "Mengajar Coding dari Javascript dasar, Typescript, hingga React.Js",
-  "images": Background.png, BeresIn Flow.png
+  "images": ["Background.png", "BeresIn Flow.png"]
 }
 ```
 
-#### **Example Response**:
+**Example Response**:
 ```json
 {
   "status": "success",
@@ -606,57 +762,74 @@ Returns all services belonging to the authenticated user, unique to each user.
     "name_of_service": "Jasa Mengajar Next.js",
     "category_id": 3,
     "description": "Mengajar Coding dari Javascript dasar, Typescript, hingga React.Js",
-    "status": "pending"
-  },
-  "images": [
-    {
-      "id": 13,
-      "image": "services/uploads/images/1730713493349-Background.png",
-      "service_id": 11
-    },
-    {
-      "id": 14,
-      "image": "services/uploads/images/1730713493349-BeresIn Flow.drawio.png",
-      "service_id": 11
-    }
-  ]
+    "status": "pending",
+    "images": [
+      {
+        "id": 13,
+        "image": "services/uploads/images/1730713493349-Background.png",
+        "service_id": 11
+      },
+      {
+        "id": 14,
+        "image": "services/uploads/images/1730713493349-BeresIn Flow.png",
+        "service_id": 11
+      }
+    ]
+  }
 }
 ```
 
 ---
 
-#### **Endpoint: PUT /v1/user/services/:id**
+#### **Endpoint: PUT /user/services/:id**
 
-| Parameter            | Type     | Description                        |
-| -------------------- | -------- | ---------------------------------- |
-| `api_key`            | `string` | **Required**. User API key         |
-| `name_of_service`    | `string` | **Required**. Name of the service  |
-| `category_id`        | `integer`| **Required**. ID of the category   |
-| `description`        | `string` | **Required**. Description of service |
+| Parameter          | Type      | Description                  |
+| ------------------ | --------- | ---------------------------- |
+| Bearer             | `string`  | **Required**. User JWT       |
+| `name_of_service`  | `string`  | **Required**. Name of the service |
+| `category_id`      | `integer` | **Required**. ID of the category |
+| `description`      | `string`  | **Required**. Description of the service |
+| `images`           | `String`  | **Optional**. Updated images of the service |
 
-#### **Example Request Body**:
+**Note**: This endpoint also requires `multipart/form-data` for file upload. The `images` field accepts up to 2 image files.
+
+**Example Request Body**:
 ```json
 {
-  "name_of_service": "Jasa Perbaikan",
+  "name_of_service": "Jasa Perbaikan Laptop",
   "category_id": 1,
-  "description": "Perbaikan Laptop, Hp, dan Komputer",
+  "description": "Service and repair for laptops, including software and hardware issues",
+  "images": ["laptop-repair1.png", "laptop-repair2.png"]
 }
 ```
+---
 
-#### **Example Response**:
+**Example Response**:
 ```json
 {
   "status": "success",
   "service": {
     "id": 2,
     "created_at": "2024-11-02T19:19:18.752Z",
-    "updated_at": "2024-11-02T19:19:18.752Z",
+    "updated_at": "2024-11-07T19:19:18.752Z",
     "user_id": 3,
     "isSubscription": true,
-    "name_of_service": "Jasa Perbaikan",
+    "name_of_service": "Jasa Perbaikan Laptop",
     "category_id": 1,
-    "description": "Perbaikan Laptop, Hp, dan Komputer",
-    "status": "accept"
+    "description": "Service and repair for laptops, including software and hardware issues",
+    "status": "accept",
+    "images": [
+      {
+        "id": 15,
+        "image": "services/uploads/images/1730713493349-laptop-repair1.png",
+        "service_id": 2
+      },
+      {
+        "id": 16,
+        "image": "services/uploads/images/1730713493349-laptop-repair2.png",
+        "service_id": 2
+      }
+    ]
   }
 }
 ```
@@ -665,11 +838,13 @@ Returns all services belonging to the authenticated user, unique to each user.
 
 #### **Endpoint: DELETE /user/services/:id**
 
-| Parameter  | Type     | Description                   |
-| ---------- | -------- | ----------------------------- |
-| `api_key`  | `string` | **Required**. User API key    |
+| Parameter | Type     | Description             |
+| --------- | -------- | ----------------------- |
+| Bearer    | `string` | **Required**. User JWT  |
 
-#### **Example Response**:
+Deletes a specified service belonging to the authenticated user.
+
+**Example Response**:
 ```json
 {
   "status": "success",
@@ -724,17 +899,6 @@ Only services with `status: accept` are displayed.
   "status": "success",
   "services": [
     {
-      "id": 2,
-      "created_at": "2024-11-02T19:19:18.752Z",
-      "updated_at": "2024-11-02T19:19:18.752Z",
-      "user_id": 3,
-      "isSubscription": true,
-      "name_of_service": "Jasa Laundry",
-      "category_id": 2,
-      "description": "Laundry Baju, Kemeja kecuali CD",
-      "status": "accept"
-    },
-    {
       "id": 1,
       "created_at": "2024-11-01T18:36:42.777Z",
       "updated_at": "2024-11-01T18:36:42.777Z",
@@ -743,7 +907,12 @@ Only services with `status: accept` are displayed.
       "name_of_service": "Jasa Design",
       "category_id": 1,
       "description": "Jasa design web dan aplikasi",
-      "status": "accept"
+      "status": "accept",
+      "images": [
+        "services/uploads/images/1730568201772-WhatsApp Image 2024-11-02 at 17.58.44.jpeg",
+        "services/uploads/images/1730568201773-ttd-halim.png"
+      ],
+      "phone": "081235595153"
     }
   ]
 }
