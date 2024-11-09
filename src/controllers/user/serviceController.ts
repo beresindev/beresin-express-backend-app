@@ -31,8 +31,20 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 	const { name_of_service, category_id, description } = req.body;
 	const userId = (req as any).user.id;
 
-	if (!category_id) {
-		res.status(400).json({ status: 'error', message: 'category_id is required' });
+	// Validate required fields
+	if (!name_of_service || !category_id || !description) {
+		res.status(400).json({ status: 'error', message: 'name_of_service, category_id, and description are required' });
+		return;
+	}
+
+	// Image validation
+	if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+		res.status(400).json({ status: 'error', message: 'At least one image is required' });
+		return;
+	}
+
+	if (req.files.length > 2) {
+		res.status(400).json({ status: 'error', message: 'Maximum of 2 images allowed' });
 		return;
 	}
 
@@ -55,15 +67,32 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 	res.status(201).json({ status: 'success', service: newService, images: newImages });
 });
 
-// Mengupdate layanan
 export const updateUserService = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const { name_of_service, category_id, description } = req.body;
 	const userId = (req as any).user.id;
 
+	// Check if service exists and belongs to the user
 	const service = await serviceModel.findById(Number(id));
 	if (!service || service.user_id !== userId) {
 		res.status(403).json({ status: 'error', message: 'Unauthorized to edit this service' });
+		return;
+	}
+
+	// Validate required fields
+	if (!name_of_service || !category_id || !description) {
+		res.status(400).json({ status: 'error', message: 'name_of_service, category_id, and description are required' });
+		return;
+	}
+
+	// Image validation
+	if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+		res.status(400).json({ status: 'error', message: 'At least one image is required' });
+		return;
+	}
+
+	if (req.files.length > 2) {
+		res.status(400).json({ status: 'error', message: 'Maximum of 2 images allowed' });
 		return;
 	}
 
@@ -79,21 +108,18 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 	}
 
 	const serviceResponse = { ...updatedService, images: [] as string[] };
-	if (req.files && (req.files as Express.Multer.File[]).length > 0) {
-		await imageModel.deleteByServiceId(service.id);
 
-		const uploadedImages = req.files as Express.Multer.File[];
-		const imagePaths = uploadedImages.map((file) => ({ image: file.path, service_id: service.id }));
-		const newImages = [];
-		for (const imageData of imagePaths) {
-			const newImage = await imageModel.create(imageData);
-			newImages.push(newImage);
-		}
-		serviceResponse.images = newImages.map((img) => img.image);
-	} else {
-		const existingImages = await imageModel.findByServiceId(service.id);
-		serviceResponse.images = existingImages.map((img) => img.image);
+	// Update images: Delete existing images for this service, then add new ones
+	await imageModel.deleteByServiceId(service.id);
+
+	const uploadedImages = req.files as Express.Multer.File[];
+	const imagePaths = uploadedImages.map((file) => ({ image: file.path, service_id: service.id }));
+	const newImages = [];
+	for (const imageData of imagePaths) {
+		const newImage = await imageModel.create(imageData);
+		newImages.push(newImage);
 	}
+	serviceResponse.images = newImages.map((img) => img.image);
 
 	res.json({ status: 'success', service: serviceResponse });
 });
