@@ -8,8 +8,8 @@ export async function up(knex: Knex): Promise<void> {
 		table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
 		table.boolean('isSubscription').defaultTo(false);
 		table.string('name_of_service').notNullable();
-		table.integer('category_id').unsigned().references('id').inTable('category_services').onDelete('SET NULL');
-		table.text('description');
+		table.integer('category_id').unsigned().notNullable().references('id').inTable('category_services').onDelete('SET NULL');
+		table.text('description').notNullable();
 		table.enum('status', ['pending', 'decline', 'accept']).defaultTo('pending');
 	});
 }
