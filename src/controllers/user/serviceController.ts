@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 import asyncHandler from '../../handlers/asyncHandler';
 import imageModel from '../../models/imageModel';
 import serviceModel from '../../models/serviceModel';
@@ -34,20 +36,50 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 	// Validate required fields
 	if (!name_of_service || !category_id || !description) {
 		res.status(400).json({ status: 'error', message: 'name_of_service, category_id, and description are required' });
-		return;
+		return; // Add return to stop execution here
 	}
 
-	// Image validation
-	if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+	// Initialize images array
+	let images: string[] = [];
+
+	// Handle `multipart/form-data` vs. JSON request handling for images
+	if (req.is('multipart/form-data')) {
+		// For multipart, `images` might be sent as a string; parse it if so
+		if (typeof req.body.images === 'string') {
+			try {
+				images = JSON.parse(req.body.images);
+			} catch (error) {
+				res.status(400).json({ status: 'error', message: 'Invalid images format' });
+				return; // Stop execution
+			}
+		} else {
+			res.status(400).json({ status: 'error', message: 'Images should be in Base64 format within a JSON array' });
+			return;
+		}
+	} else {
+		// Handle JSON data format (direct Base64 images in `req.body.images`)
+		images = req.body.images;
+	}
+
+	// Validate that images is an array and has at least one item
+	if (!Array.isArray(images) || images.length === 0) {
 		res.status(400).json({ status: 'error', message: 'At least one image is required' });
 		return;
 	}
-
-	if (req.files.length > 2) {
+	if (images.length > 2) {
 		res.status(400).json({ status: 'error', message: 'Maximum of 2 images allowed' });
 		return;
 	}
 
+	// Validate each image's Base64 format
+	for (let i = 0; i < images.length; i++) {
+		if (!/^data:image\/(png|jpeg|jpg);base64,/.test(images[i])) {
+			res.status(400).json({ status: 'error', message: 'Invalid Base64 image format' });
+			return;
+		}
+	}
+
+	// Proceed with service creation
 	const newService = await serviceModel.create({
 		user_id: userId,
 		name_of_service,
@@ -56,8 +88,19 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 		status: 'pending',
 	});
 
-	const uploadedImages = req.files as Express.Multer.File[];
-	const imagePaths = uploadedImages.map((file) => ({ image: file.path, service_id: newService.id }));
+	// Process and save each Base64 image
+	const imagePaths = [];
+	for (let i = 0; i < images.length; i++) {
+		const base64Data = images[i].replace(/^data:image\/\w+;base64,/, '');
+		const buffer = Buffer.from(base64Data, 'base64');
+		const imagePath = path.join('services/uploads/images', `${Date.now()}-${i}.png`);
+
+		// Save the image file
+		fs.writeFileSync(imagePath, buffer);
+
+		imagePaths.push({ image: imagePath, service_id: newService.id });
+	}
+
 	const newImages = [];
 	for (const imageData of imagePaths) {
 		const newImage = await imageModel.create(imageData);
@@ -85,17 +128,52 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 		return;
 	}
 
-	// Image validation
-	if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+	let images: string[] = [];
+
+	// Handle `multipart/form-data` vs. JSON request handling for images
+	console.log('Request Headers:', req.headers);
+	console.log('Request Body:', req.body);
+
+	if (req.is('multipart/form-data')) {
+		// Parse `images` as JSON if it's a string
+		if (typeof req.body.images === 'string') {
+			try {
+				images = JSON.parse(req.body.images);
+				console.log('Parsed images:', images); // Debugging
+			} catch (error) {
+				console.error('Error parsing images JSON:', error); // Log any JSON parsing error
+				res.status(400).json({ status: 'error', message: 'Invalid images format' });
+				return;
+			}
+		} else {
+			res.status(400).json({ status: 'error', message: 'Images should be in Base64 format within a JSON array' });
+			return;
+		}
+	} else {
+		// Handle JSON data format (direct Base64 images in `req.body.images`)
+		images = req.body.images;
+	}
+
+	// Validate that images is an array and has at least one item
+	if (!Array.isArray(images) || images.length === 0) {
+		console.log('Images validation failed. Received images:', images); // Log received images for debugging
 		res.status(400).json({ status: 'error', message: 'At least one image is required' });
 		return;
 	}
-
-	if (req.files.length > 2) {
+	if (images.length > 2) {
 		res.status(400).json({ status: 'error', message: 'Maximum of 2 images allowed' });
 		return;
 	}
 
+	// Validate each image's Base64 format
+	for (let i = 0; i < images.length; i++) {
+		if (!/^data:image\/(png|jpeg|jpg);base64,/.test(images[i])) {
+			res.status(400).json({ status: 'error', message: 'Invalid Base64 image format' });
+			return;
+		}
+	}
+
+	// Update the service details
 	const updatedService = await serviceModel.updateById(Number(id), {
 		name_of_service,
 		category_id: Number(category_id),
@@ -109,18 +187,32 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 
 	const serviceResponse = { ...updatedService, images: [] as string[] };
 
-	// Update images: Delete existing images for this service, then add new ones
+	// Delete existing images for this service
 	await imageModel.deleteByServiceId(service.id);
 
-	const uploadedImages = req.files as Express.Multer.File[];
-	const imagePaths = uploadedImages.map((file) => ({ image: file.path, service_id: service.id }));
+	// Process and save each new Base64 image
+	const imagePaths = [];
+	for (let i = 0; i < images.length; i++) {
+		const base64Data = images[i].replace(/^data:image\/\w+;base64,/, '');
+		const buffer = Buffer.from(base64Data, 'base64');
+		const imagePath = path.join('services/uploads/images', `${Date.now()}-${i}.png`);
+
+		// Save the image file
+		fs.writeFileSync(imagePath, buffer);
+
+		imagePaths.push({ image: imagePath, service_id: service.id });
+	}
+
+	// Save new image paths to the database
 	const newImages = [];
 	for (const imageData of imagePaths) {
 		const newImage = await imageModel.create(imageData);
 		newImages.push(newImage);
 	}
+
 	serviceResponse.images = newImages.map((img) => img.image);
 
+	// Final response
 	res.json({ status: 'success', service: serviceResponse });
 });
 
