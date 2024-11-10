@@ -4,7 +4,6 @@ import { authenticateToken } from '../../middlewares/authMiddleware';
 
 const router = express.Router();
 
-// Route untuk user dan admin
 router.get('/', authenticateToken, getAllCategory);
 
 export default router;

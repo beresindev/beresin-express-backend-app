@@ -98,6 +98,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 				username: user.username,
 				email: user.email,
 				role: user.role,
+				created_at: user.created_at,
+				updated_at: user.updated_at,
 			},
 		});
 	} catch (error) {
