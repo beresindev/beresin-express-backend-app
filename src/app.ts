@@ -19,10 +19,12 @@ import path from 'path';
 const app = express();
 app.use(express.json());
 
-// Enable CORS and specify allowed origins
+app.use(express.json({ limit: '10mb' })); 
+
+
 app.use(cors({
-  origin: 'http://localhost:3000',  // Allow only this origin
-  credentials: true,                // Allow cookies or authorization headers
+  origin: 'http://localhost:3000',  
+  credentials: true,               
 }));
 
 // Route status
