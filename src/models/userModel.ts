@@ -5,7 +5,7 @@ interface User {
 	username: string;
 	name: string;
 	email: string;
-	phone: number; // Menggunakan number sesuai dengan ERD
+	phone: number;
 	password: string;
 	role: string;
 	created_at?: Date;
@@ -19,6 +19,11 @@ const userModel = {
 	findByEmail: async (email: string): Promise<User | undefined> => {
 		return db<User>('users').where({ email }).first();
 	},
+
+	findByPhone: async (phone: string): Promise<User | undefined> => {
+		return db<User>('users').where('phone', phone).first();
+	},
+
 	findByUsername: async (username: string): Promise<User | undefined> => {
 		return db<User>('users').where({ username }).first();
 	},
