@@ -112,7 +112,19 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 			newImages.push(newImage);
 		}
 
-		res.status(201).json({ status: 'success', service: newService, images: newImages });
+		// Fetch user's phone number for consistency with `GET` response
+		const user = await userModel.findById(userId);
+		const userPhone = user ? user.phone : null;
+
+		// Format response to match `GET` response structure
+		res.status(201).json({
+			status: 'success',
+			service: {
+				...newService,
+				phone: userPhone,
+				images: newImages.map((img) => img.image), // Only the image paths, as in `GET` response
+			},
+		});
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
 		res.status(400).json({ status: 'error', message: errorMessage });
