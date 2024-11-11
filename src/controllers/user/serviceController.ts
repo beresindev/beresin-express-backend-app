@@ -93,9 +93,8 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 		images = req.body.images;
 	}
 
-	// Validate that images are in the correct format
 	try {
-		const imagePaths = saveImages(images, userId);
+		// Create the service first
 		const newService = await serviceModel.create({
 			user_id: userId,
 			name_of_service,
@@ -103,6 +102,9 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 			description,
 			status: 'pending',
 		});
+
+		// Save images associated with the new service
+		const imagePaths = saveImages(images, newService.id); // Use newService.id here
 
 		const newImages = [];
 		for (const imageData of imagePaths) {
