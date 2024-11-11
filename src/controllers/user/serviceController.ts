@@ -4,6 +4,7 @@ import path from 'path';
 import asyncHandler from '../../handlers/asyncHandler';
 import imageModel from '../../models/imageModel';
 import serviceModel from '../../models/serviceModel';
+import userModel from '../../models/userModel';
 
 // Helper function to validate and get file extension from MIME type
 const validateAndGetExtension = (mimeType: string): string | null => {
@@ -49,15 +50,19 @@ export const getUserServices = asyncHandler(async (req: Request, res: Response) 
 	const serviceIds = services.map((service) => service.id);
 	const images = await imageModel.findByServiceIds(serviceIds);
 
+	// Fetch user data to get the phone number
+	const user = await userModel.findById(userId);
+	const userPhone = user ? user.phone : null;
+
 	const servicesWithImages = services.map((service) => ({
 		...service,
+		phone: userPhone,
 		images: images.filter((image) => image.service_id === service.id).map((img) => img.image),
 	}));
 
 	res.json({ status: 'success', services: servicesWithImages });
 });
 
-// Controller to create a new service with images
 // Controller to create a new service with images
 export const createServiceWithImages = asyncHandler(async (req: Request, res: Response) => {
 	const { name_of_service, category_id, description } = req.body;
