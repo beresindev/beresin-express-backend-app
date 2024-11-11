@@ -33,35 +33,45 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 	const { name_of_service, category_id, description } = req.body;
 	const userId = (req as any).user.id;
 
+	// Log untuk memeriksa seluruh request body
+	console.log('Full request body (create):', req.body);
+
+	// Log spesifik untuk field images
+	console.log('Images field (create):', req.body.images);
+
 	// Validate required fields
 	if (!name_of_service || !category_id || !description) {
 		res.status(400).json({ status: 'error', message: 'name_of_service, category_id, and description are required' });
-		return; // Add return to stop execution here
+		return;
 	}
 
-	// Initialize images array
 	let images: string[] = [];
 
-	// Handle `multipart/form-data` vs. JSON request handling for images
+	// Handle parsing jika `multipart/form-data` vs JSON
 	if (req.is('multipart/form-data')) {
-		// For multipart, `images` might be sent as a string; parse it if so
+		// Jika `images` adalah string, coba parsing sebagai JSON
 		if (typeof req.body.images === 'string') {
 			try {
 				images = JSON.parse(req.body.images);
+				console.log('Parsed images (create):', images); // Log hasil parsing images
 			} catch (error) {
+				console.error('Error parsing images JSON (create):', error); // Log error parsing JSON
 				res.status(400).json({ status: 'error', message: 'Invalid images format' });
-				return; // Stop execution
+				return;
 			}
 		} else {
 			res.status(400).json({ status: 'error', message: 'Images should be in Base64 format within a JSON array' });
 			return;
 		}
 	} else {
-		// Handle JSON data format (direct Base64 images in `req.body.images`)
+		// Untuk JSON data format (direct Base64 images in `req.body.images`)
 		images = req.body.images;
 	}
 
-	// Validate that images is an array and has at least one item
+	// Log setelah memastikan images telah terisi
+	console.log('Final images array (create):', images);
+
+	// Validasi bahwa images adalah array dan memiliki item
 	if (!Array.isArray(images) || images.length === 0) {
 		res.status(400).json({ status: 'error', message: 'At least one image is required' });
 		return;
@@ -71,15 +81,7 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 		return;
 	}
 
-	// Validate each image's Base64 format
-	for (let i = 0; i < images.length; i++) {
-		if (!/^data:image\/(png|jpeg|jpg);base64,/.test(images[i])) {
-			res.status(400).json({ status: 'error', message: 'Invalid Base64 image format' });
-			return;
-		}
-	}
-
-	// Proceed with service creation
+	// Lanjutkan proses penyimpanan layanan baru
 	const newService = await serviceModel.create({
 		user_id: userId,
 		name_of_service,
@@ -88,16 +90,13 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 		status: 'pending',
 	});
 
-	// Process and save each Base64 image
+	// Proses simpan Base64 images ke file
 	const imagePaths = [];
 	for (let i = 0; i < images.length; i++) {
 		const base64Data = images[i].replace(/^data:image\/\w+;base64,/, '');
 		const buffer = Buffer.from(base64Data, 'base64');
 		const imagePath = path.join('services/uploads/images', `${Date.now()}-${i}.png`);
-
-		// Save the image file
 		fs.writeFileSync(imagePath, buffer);
-
 		imagePaths.push({ image: imagePath, service_id: newService.id });
 	}
 
@@ -115,6 +114,12 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 	const { name_of_service, category_id, description } = req.body;
 	const userId = (req as any).user.id;
 
+	// Log untuk memeriksa seluruh request body
+	console.log('Full request body (update):', req.body);
+
+	// Log spesifik untuk field images
+	console.log('Images field (update):', req.body.images);
+
 	// Check if service exists and belongs to the user
 	const service = await serviceModel.findById(Number(id));
 	if (!service || service.user_id !== userId) {
@@ -130,18 +135,14 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 
 	let images: string[] = [];
 
-	// Handle `multipart/form-data` vs. JSON request handling for images
-	console.log('Request Headers:', req.headers);
-	console.log('Request Body:', req.body);
-
 	if (req.is('multipart/form-data')) {
-		// Parse `images` as JSON if it's a string
+		// Jika `images` adalah string, coba parsing sebagai JSON
 		if (typeof req.body.images === 'string') {
 			try {
 				images = JSON.parse(req.body.images);
-				console.log('Parsed images:', images); // Debugging
+				console.log('Parsed images (update):', images); // Log hasil parsing images
 			} catch (error) {
-				console.error('Error parsing images JSON:', error); // Log any JSON parsing error
+				console.error('Error parsing images JSON (update):', error); // Log error parsing JSON
 				res.status(400).json({ status: 'error', message: 'Invalid images format' });
 				return;
 			}
@@ -150,13 +151,14 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 			return;
 		}
 	} else {
-		// Handle JSON data format (direct Base64 images in `req.body.images`)
 		images = req.body.images;
 	}
 
-	// Validate that images is an array and has at least one item
+	// Log setelah memastikan images telah terisi
+	console.log('Final images array (update):', images);
+
+	// Validasi bahwa images adalah array dan memiliki item
 	if (!Array.isArray(images) || images.length === 0) {
-		console.log('Images validation failed. Received images:', images); // Log received images for debugging
 		res.status(400).json({ status: 'error', message: 'At least one image is required' });
 		return;
 	}
@@ -165,15 +167,7 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 		return;
 	}
 
-	// Validate each image's Base64 format
-	for (let i = 0; i < images.length; i++) {
-		if (!/^data:image\/(png|jpeg|jpg);base64,/.test(images[i])) {
-			res.status(400).json({ status: 'error', message: 'Invalid Base64 image format' });
-			return;
-		}
-	}
-
-	// Update the service details
+	// Lanjutkan proses update layanan
 	const updatedService = await serviceModel.updateById(Number(id), {
 		name_of_service,
 		category_id: Number(category_id),
@@ -187,23 +181,19 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 
 	const serviceResponse = { ...updatedService, images: [] as string[] };
 
-	// Delete existing images for this service
+	// Hapus gambar yang ada sebelum menambahkan yang baru
 	await imageModel.deleteByServiceId(service.id);
 
-	// Process and save each new Base64 image
+	// Proses simpan Base64 images ke file
 	const imagePaths = [];
 	for (let i = 0; i < images.length; i++) {
 		const base64Data = images[i].replace(/^data:image\/\w+;base64,/, '');
 		const buffer = Buffer.from(base64Data, 'base64');
 		const imagePath = path.join('services/uploads/images', `${Date.now()}-${i}.png`);
-
-		// Save the image file
 		fs.writeFileSync(imagePath, buffer);
-
 		imagePaths.push({ image: imagePath, service_id: service.id });
 	}
 
-	// Save new image paths to the database
 	const newImages = [];
 	for (const imageData of imagePaths) {
 		const newImage = await imageModel.create(imageData);
@@ -212,7 +202,6 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 
 	serviceResponse.images = newImages.map((img) => img.image);
 
-	// Final response
 	res.json({ status: 'success', service: serviceResponse });
 });
 
