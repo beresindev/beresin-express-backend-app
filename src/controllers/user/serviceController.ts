@@ -187,7 +187,17 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 			newImages.push(newImage);
 		}
 
-		res.json({ status: 'success', service: { ...updatedService, images: newImages.map((img) => img.image) } });
+		const user = await userModel.findById(userId);
+		const userPhone = user ? user.phone : null;
+
+		res.json({
+			status: 'success',
+			service: {
+				...updatedService,
+				phone: userPhone,
+				images: newImages.map((img) => img.image),
+			},
+		});
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
 		res.status(400).json({ status: 'error', message: errorMessage });
