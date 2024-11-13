@@ -21,11 +21,14 @@ app.use(express.json());
 
 app.use(express.json({ limit: '10mb' })); 
 
-
+// Enable CORS with specific settings
 app.use(cors({
-  origin: 'http://localhost:3000',  
-  credentials: true,               
-}));
+    origin: 'http://localhost:3000',  // Allow only localhost:3000
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Specify allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'],  // Allow specific headers
+    credentials: true,  // Enable credentials (cookies, authorization headers)
+  }));
+  
 
 // Route status
 app.use('/api', statusRoute);
