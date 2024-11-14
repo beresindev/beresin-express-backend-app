@@ -11,6 +11,21 @@ export const getAllUsers = asyncHandler(async (_req: Request, res: Response) => 
 	res.json({ status: 'success', users });
 });
 
+// Get a single user by ID
+export const getUserById = asyncHandler(async (req: Request, res: Response) => {
+	const { id } = req.params;
+
+	// Find the user by ID
+	const user = await userModel.findById(Number(id));
+	if (!user) {
+		res.status(404).json({ status: 'error', message: 'User not found' });
+		return;
+	}
+
+	// Return the found user
+	res.json({ status: 'success', user });
+});
+
 // Menambahkan pengguna baru
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
 	const { username, name, email, phone, password, role } = req.body;
