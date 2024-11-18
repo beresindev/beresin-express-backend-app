@@ -1,165 +1,151 @@
 import { Request, Response } from 'express';
-import fs from 'fs';
-import path from 'path';
 import asyncHandler from '../../handlers/asyncHandler';
 import imageModel from '../../models/imageModel';
 import serviceModel from '../../models/serviceModel';
 import userModel from '../../models/userModel';
+import { saveUploadedImages } from '../../utils/filleHandler';
+import { capitalize, capitalizeFirstWord } from '../../utils/formatStyle';
+import { parseCurrency, serviceValidationInput } from '../../validations/serviceValidation';
 
-// Function to save uploaded images directly from `multipart/form-data`
-const saveUploadedImages = (files: Express.Multer.File[], serviceId: number) => {
-	return files.map((file, i) => {
-		const extension = path.extname(file.originalname).toLowerCase(); // Get file extension
-		const validExtensions = ['.jpg', '.jpeg', '.png'];
-
-		if (!validExtensions.includes(extension)) {
-			throw new Error('Unsupported image format. Only jpg, jpeg, and png are allowed.');
-		}
-
-		// Create unique image path
-		const imagePath = path.join('services/uploads/images', `${Date.now()}-${i}${extension}`);
-		fs.writeFileSync(imagePath, file.buffer);
-
-		return { image: imagePath, service_id: serviceId };
-	});
-};
-
-// Controller to fetch user services with images
+// Fetch user services with images
 export const getUserServices = asyncHandler(async (req: Request, res: Response) => {
 	const userId = (req as any).user.id;
-	console.log(`Fetching services for user ${userId}`);
 
 	const services = await serviceModel.findByUserId(userId);
 	const serviceIds = services.map((service) => service.id);
 	const images = await imageModel.findByServiceIds(serviceIds);
 
 	const user = await userModel.findById(userId);
-	const userPhone = user ? user.phone : null;
 
 	const servicesWithImages = services.map((service) => ({
 		...service,
-		phone: userPhone,
+		phone: user?.phone || null,
 		images: images.filter((image) => image.service_id === service.id).map((img) => img.image),
 	}));
 
 	res.json({ status: 'success', services: servicesWithImages });
 });
 
-// Controller to create a new service with images
+// Create new service with images
 export const createServiceWithImages = asyncHandler(async (req: Request, res: Response) => {
-	const { name_of_service, category_id, description } = req.body;
 	const userId = (req as any).user.id;
+	const { name_of_service, category_id, description, min_price, max_price } = req.body;
 
-	if (!name_of_service || !category_id || !description) {
-		res.status(400).json({ status: 'error', message: 'name_of_service, category_id, and description are required' });
+	const errors = serviceValidationInput({ name_of_service, category_id, description, min_price, max_price });
+	if (errors.length) {
+		res.status(400).json({ status: 'error', message: errors.join(' ') });
 		return;
 	}
 
+	const formattedName = `Jasa ${capitalize(name_of_service)}`;
+	const formattedDescription = capitalizeFirstWord(description);
+
 	const files = req.files as Express.Multer.File[];
 
-	try {
-		const newService = await serviceModel.create({
-			user_id: userId,
-			name_of_service,
-			category_id: Number(category_id),
-			description,
-			status: 'pending',
-		});
+	const newService = await serviceModel.create({
+		user_id: userId,
+		name_of_service: formattedName,
+		category_id: Number(category_id),
+		description: formattedDescription,
+		min_price: parseCurrency(min_price),
+		max_price: parseCurrency(max_price),
+		status: 'pending',
+	});
 
-		const imagePaths = saveUploadedImages(files, newService.id);
+	const imagePaths = saveUploadedImages(files, newService.id);
+	const newImages = await Promise.all(imagePaths.map((imageData) => imageModel.create(imageData)));
 
-		const newImages = [];
-		for (const imageData of imagePaths) {
-			const newImage = await imageModel.create(imageData);
-			newImages.push(newImage);
-		}
+	const user = await userModel.findById(userId);
 
-		const user = await userModel.findById(userId);
-		const userPhone = user ? user.phone : null;
-
-		res.status(201).json({
-			status: 'success',
-			service: {
-				...newService,
-				phone: userPhone,
-				images: newImages.map((img) => img.image),
-			},
-		});
-	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-		res.status(400).json({ status: 'error', message: errorMessage });
-	}
+	res.status(201).json({
+		status: 'success',
+		service: {
+			...newService,
+			phone: user?.phone || null,
+			images: newImages.map((img) => img.image),
+		},
+	});
 });
 
-// Controller to update an existing service with images
-export const updateUserService = asyncHandler(async (req: Request, res: Response) => {
+export const getServiceById = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
-	const { name_of_service, category_id, description } = req.body;
 	const userId = (req as any).user.id;
 
 	const service = await serviceModel.findById(Number(id));
 	if (!service || service.user_id !== userId) {
-		res.status(403).json({ status: 'error', message: 'Unauthorized to edit this service' });
+		res.status(404).json({ status: 'error', message: 'Layanan tidak ditemukan atau Anda tidak memiliki akses.' });
+		return; // Explicitly end function execution
+	}
+
+	const images = await imageModel.findByServiceId(Number(id));
+
+	const serviceWithImages = {
+		...service,
+		images: images.map((img) => img.image),
+	};
+
+	res.json({ status: 'success', service: serviceWithImages });
+});
+
+// Update existing service with images
+export const updateUserService = asyncHandler(async (req: Request, res: Response) => {
+	const { id } = req.params;
+	const userId = (req as any).user.id;
+	const { name_of_service, category_id, description, min_price, max_price } = req.body;
+
+	const service = await serviceModel.findById(Number(id));
+	if (!service || service.user_id !== userId) {
+		res.status(403).json({ status: 'error', message: 'Anda tidak diizinkan untuk mengedit layanan ini.' });
 		return;
 	}
 
-	if (!name_of_service || !category_id || !description) {
-		res.status(400).json({ status: 'error', message: 'name_of_service, category_id, and description are required' });
+	const errors = serviceValidationInput({ name_of_service, category_id, description, min_price, max_price });
+	if (errors.length) {
+		res.status(400).json({ status: 'error', message: errors.join(' ') });
 		return;
 	}
+
+	const formattedName = `Jasa ${capitalize(name_of_service)}`;
+	const formattedDescription = capitalizeFirstWord(description);
 
 	const files = req.files as Express.Multer.File[];
 
-	try {
-		const updatedService = await serviceModel.updateById(Number(id), {
-			name_of_service,
-			category_id: Number(category_id),
-			description,
-		});
+	const updatedService = await serviceModel.updateById(Number(id), {
+		name_of_service: formattedName,
+		category_id: Number(category_id),
+		description: formattedDescription,
+		min_price: parseCurrency(min_price),
+		max_price: parseCurrency(max_price),
+	});
 
-		if (!updatedService) {
-			res.status(500).json({ status: 'error', message: 'Failed to update service' });
-			return;
-		}
+	await imageModel.deleteByServiceId(service.id);
+	const imagePaths = saveUploadedImages(files, service.id);
+	const newImages = await Promise.all(imagePaths.map((imageData) => imageModel.create(imageData)));
 
-		await imageModel.deleteByServiceId(service.id);
-		const imagePaths = saveUploadedImages(files, service.id);
+	const user = await userModel.findById(userId);
 
-		const newImages = [];
-		for (const imageData of imagePaths) {
-			const newImage = await imageModel.create(imageData);
-			newImages.push(newImage);
-		}
-
-		const user = await userModel.findById(userId);
-		const userPhone = user ? user.phone : null;
-
-		res.json({
-			status: 'success',
-			service: {
-				...updatedService,
-				phone: userPhone,
-				images: newImages.map((img) => img.image),
-			},
-		});
-	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-		res.status(400).json({ status: 'error', message: errorMessage });
-	}
+	res.json({
+		status: 'success',
+		service: {
+			...updatedService,
+			phone: user?.phone || null,
+			images: newImages.map((img) => img.image),
+		},
+	});
 });
 
-// Controller to delete a service
 export const deleteUserService = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const userId = (req as any).user.id;
 
 	const service = await serviceModel.findById(Number(id));
 	if (!service || service.user_id !== userId) {
-		res.status(403).json({ status: 'error', message: 'Unauthorized to delete this service' });
+		res.status(403).json({ status: 'error', message: 'Anda tidak diizinkan untuk menghapus layanan ini.' });
 		return;
 	}
 
 	await imageModel.deleteByServiceId(service.id);
 	await serviceModel.deleteById(Number(id));
-	res.json({ status: 'success', message: 'Service deleted successfully' });
+
+	res.json({ status: 'success', message: 'Layanan berhasil dihapus.' });
 });
