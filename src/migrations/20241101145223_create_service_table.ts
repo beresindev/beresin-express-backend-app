@@ -11,6 +11,8 @@ export async function up(knex: Knex): Promise<void> {
 		table.integer('category_id').unsigned().notNullable().references('id').inTable('category_services').onDelete('SET NULL');
 		table.text('description').notNullable();
 		table.enum('status', ['pending', 'decline', 'accept']).defaultTo('pending');
+		table.integer('min_price').unsigned().notNullable().defaultTo(0);
+		table.integer('max_price').unsigned().notNullable().defaultTo(0);
 	});
 }
 
