@@ -1,16 +1,10 @@
 import express from 'express';
 import { authenticateToken } from '../../middlewares/authMiddleware';
-import { addBookmark, getUserBookmarksWithService, removeBookmark } from '../../controllers/bookmarkController';
+import { toggleBookmark } from '../../controllers/bookmarkController';
 
 const router = express.Router();
 
-// Tambahkan bookmark
-router.post('/', authenticateToken, addBookmark);
-
-// Hapus bookmark
-router.delete('/', authenticateToken, removeBookmark);
-
-// Dapatkan semua bookmark user beserta detail service
-router.get('/', authenticateToken, getUserBookmarksWithService);
+// Toggle bookmark untuk service
+router.post('/:serviceId', authenticateToken, toggleBookmark);
 
 export default router;
