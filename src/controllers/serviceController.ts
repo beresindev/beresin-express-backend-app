@@ -28,32 +28,27 @@ export const getAllApprovedServices = asyncHandler(async (_req: Request, res: Re
 		const subscriptions = await Promise.all(
 			serviceIds.map(async (serviceId) => {
 				const subscription = await subscriptionModel.findActiveByServiceId(serviceId);
-				if (subscription) {
-					// Calculate expired_at based on updated_at and duration
-					const expired_at = new Date(new Date(subscription.updated_at).getTime() + subscription.duration * 24 * 60 * 60 * 1000).toISOString();
-					return {
-						service_id: serviceId,
-						isSubscription: true,
-						boost_name: subscription.boost_name,
-						duration: subscription.duration,
-						expired_at, // Include expired_at
-					};
-				}
-				return {
-					service_id: serviceId,
-					isSubscription: false,
-					boost_name: 'Tidak ada',
-					duration: 'Tidak ada',
-					expired_at: null,
-				};
+				return subscription
+					? {
+							isSubscription: true,
+							boost_name: subscription.boost_name,
+							duration: subscription.duration,
+							expired_at: new Date(new Date(subscription.updated_at).getTime() + subscription.duration * 24 * 60 * 60 * 1000).toISOString(),
+						}
+					: {
+							isSubscription: false,
+							boost_name: 'Tidak ada',
+							duration: 'Tidak ada',
+							expired_at: null,
+						};
 			}),
 		);
 
 		// Combine service details with images, user phone, and subscription details
-		const servicesWithDetails = services.map((service) => {
+		const servicesWithDetails = services.map((service, index) => {
 			const serviceImages = images.filter((image) => image.service_id === service.id).map((img) => img.image);
 			const user = users.find((user) => user.id === service.user_id);
-			const subscriptionDetail = subscriptions.find((sub) => sub.service_id === service.id);
+			const subscriptionDetail = subscriptions[index]; // Menggunakan urutan index untuk mencocokkan subscription
 
 			// Remove isSubscription from top-level service and include it in subscription
 			const { isSubscription, ...serviceWithoutSubscription } = service;
@@ -62,13 +57,7 @@ export const getAllApprovedServices = asyncHandler(async (_req: Request, res: Re
 				...serviceWithoutSubscription,
 				phone: user ? user.phone : null,
 				images: serviceImages,
-				subscription: subscriptionDetail || {
-					service_id: service.id,
-					isSubscription: false,
-					boost_name: 'Tidak ada',
-					duration: 'Tidak ada',
-					expired_at: null,
-				},
+				subscription: subscriptionDetail,
 			};
 		});
 

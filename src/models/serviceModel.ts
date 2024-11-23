@@ -10,6 +10,8 @@ interface Service {
 	status: 'pending' | 'decline' | 'accept';
 	min_price: number;
 	max_price: number;
+	like_count: number
+    bookmark_count: number
 	created_at?: Date;
 	updated_at?: Date;
 }
@@ -52,6 +54,36 @@ const serviceModel = {
 
 	findAllApproved: async (): Promise<Service[]> => {
 		return db<Service>('service').where({ status: 'accept' }).select('*');
+	},
+
+    // Perbarui jumlah like
+    updateLikeCount: async (id: number, increment: boolean): Promise<Service | undefined> => {
+		const [updatedService] = await db<Service>('service')
+			.where({ id })
+			.modify((query) => {
+				if (increment) {
+					query.increment('like_count', 1);
+				} else {
+					query.decrement('like_count', 1);
+				}
+			})
+			.returning('*');
+		return updatedService;
+	},
+
+	// Perbarui jumlah bookmark
+    updateBookmarkCount: async (id: number, increment: boolean): Promise<Service | undefined> => {
+		const [updatedService] = await db<Service>('service')
+			.where({ id })
+			.modify((query) => {
+				if (increment) {
+					query.increment('bookmark_count', 1);
+				} else {
+					query.decrement('bookmark_count', 1);
+				}
+			})
+			.returning('*');
+		return updatedService;
 	},
 };
 
