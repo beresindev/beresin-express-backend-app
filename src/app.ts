@@ -13,11 +13,15 @@ import authRoute from './routes/v2/authRoute';
 import categoryRoute from './routes/v2/categoryRoute';
 import serviceRoute from './routes/v2/serviceRoute';
 import statusRoute from './routes/v2/statusRoute';
+import likeRoute from './routes/v2/likeRoute';
+import bookmarkRoute from './routes/v2/bookmarkRoute';
 // Routes untuk User
 import userCategoryRoute from './routes/v2/user/userCategoryRoute';
 import userRoute from './routes/v2/user/userRoute';
 import userServiceRoute from './routes/v2/user/userServiceRoute';
-import userSubscriptionListRoute from "./routes/v2/user/userSubscriptionListRoute";
+import userSubscriptionListRoute from './routes/v2/user/userSubscriptionListRoute';
+
+// Tambahkan ini
 
 const app = express();
 app.use(express.json());
@@ -47,11 +51,13 @@ app.use('/services/uploads/images', express.static(path.resolve(__dirname, '../s
 app.use('/api/v2/user', userRoute); // Mengelola profil user
 app.use('/api/v2/user/services', userServiceRoute); // CRUD layanan milik user
 app.use('/api/v2/user/category', userCategoryRoute); // Mengelola kategori layanan untuk user
-app.use('/api/v2/user/subscription-list', userSubscriptionListRoute);
+app.use('/api/v2/user/subscription-list', userSubscriptionListRoute); // Mengelola daftar langganan
 
 // Route umum yang bisa diakses semua pengguna
 app.use('/api/v2/services', serviceRoute); // Melihat semua layanan yang disetujui
 app.use('/api/v2/category', categoryRoute); // Menampilkan semua kategori
+app.use('/api/v2/likes', likeRoute); // Tambahkan rute untuk like
+app.use('/api/v2/bookmarks', bookmarkRoute); // Tambahkan rute untuk bookmark
 
 // Route khusus admin
 app.use('/api/v2/admin/category', adminCategoryRoute); // CRUD kategori layanan oleh admin
