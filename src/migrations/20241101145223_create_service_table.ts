@@ -13,6 +13,8 @@ export async function up(knex: Knex): Promise<void> {
 		table.enum('status', ['pending', 'decline', 'accept']).defaultTo('pending');
 		table.integer('min_price').unsigned().notNullable().defaultTo(0);
 		table.integer('max_price').unsigned().notNullable().defaultTo(0);
+        table.integer('like_count').unsigned().notNullable().defaultTo(0); 
+        table.integer('bookmark_count').unsigned().notNullable().defaultTo(0);
 	});
 }
 
