@@ -1,29 +1,113 @@
 import { Request, Response } from 'express';
 import asyncHandler from '../../handlers/asyncHandler';
+import { saveUploadedImages } from '../../handlers/filleHandler';
+import { capitalize, capitalizeFirstWord } from '../../helpers/formatStyleHelper';
 import imageModel from '../../models/imageModel';
 import serviceModel from '../../models/serviceModel';
+import subscriptionModel from '../../models/subscriptionModel';
 import userModel from '../../models/userModel';
-import { saveUploadedImages } from '../../utils/filleHandler';
-import { capitalize, capitalizeFirstWord } from '../../utils/formatStyle';
 import { parseCurrency, serviceValidationInput } from '../../validations/serviceValidation';
 
-// Fetch user services with images
+// Fetch user services with images and subscription details
 export const getUserServices = asyncHandler(async (req: Request, res: Response) => {
 	const userId = (req as any).user.id;
 
+	// Fetch services created by the user
 	const services = await serviceModel.findByUserId(userId);
-	const serviceIds = services.map((service) => service.id);
+
+	if (services.length === 0) {
+		res.json({ status: 'success', message: 'Jasa belum ada, silahkan upload jasa Anda.', services: [] });
+		return;
+	}
+
+	// Sort services by ID in ascending order
+	const sortedServices = services.sort((a, b) => a.id - b.id);
+
+	// Fetch all service IDs for the user
+	const serviceIds = sortedServices.map((service) => service.id);
 	const images = await imageModel.findByServiceIds(serviceIds);
 
+	// Fetch subscription details for the user's services
+	const subscriptions = await Promise.all(
+		serviceIds.map(async (serviceId) => {
+			const subscription = await subscriptionModel.findActiveByServiceId(serviceId);
+			return subscription
+				? {
+						service_id: serviceId,
+						isSubscription: true,
+						boost_name: subscription.boost_name,
+						duration: subscription.duration,
+						expired_at: new Date(new Date(subscription.updated_at).getTime() + subscription.duration * 24 * 60 * 60 * 1000).toISOString(),
+					}
+				: { service_id: serviceId, isSubscription: false, boost_name: 'Tidak ada', duration: 'Tidak ada', expired_at: null };
+		}),
+	);
+
+	// Map the services with their images and subscription details
 	const user = await userModel.findById(userId);
 
-	const servicesWithImages = services.map((service) => ({
-		...service,
-		phone: user?.phone || null,
-		images: images.filter((image) => image.service_id === service.id).map((img) => img.image),
-	}));
+	const servicesWithDetails = sortedServices.map((service) => {
+		const subscriptionDetail = subscriptions.find((sub) => sub.service_id === service.id);
+		const { isSubscription, ...rest } = service; // Exclude isSubscription from top level
+		return {
+			...rest,
+			phone: user?.phone || null,
+			images: images.filter((image) => image.service_id === service.id).map((img) => img.image),
+			subscription: {
+				isSubscription: subscriptionDetail?.isSubscription || false, // Include in subscription details
+				boost_name: subscriptionDetail?.boost_name || 'Tidak ada',
+				duration: subscriptionDetail?.duration || 'Tidak ada',
+				expired_at: subscriptionDetail?.expired_at || null,
+			},
+		};
+	});
 
-	res.json({ status: 'success', services: servicesWithImages });
+	res.json({ status: 'success', services: servicesWithDetails });
+});
+
+export const getServiceById = asyncHandler(async (req: Request, res: Response) => {
+	const { id } = req.params;
+	const userId = (req as any).user.id;
+
+	// Fetch the service by ID
+	const service = await serviceModel.findById(Number(id));
+	if (!service || service.user_id !== userId) {
+		res.status(404).json({ status: 'error', message: 'Layanan tidak ditemukan atau Anda tidak memiliki akses.' });
+		return; // Explicitly end function execution
+	}
+
+	// Fetch images for the service
+	const images = await imageModel.findByServiceId(Number(id));
+
+	// Fetch subscription details for the service
+	const subscription = await subscriptionModel.findActiveByServiceId(Number(id));
+
+	// Map subscription details
+	const subscriptionDetails = subscription
+		? {
+				isSubscription: true,
+				boost_name: subscription.boost_name,
+				duration: subscription.duration,
+				expired_at: new Date(new Date(subscription.updated_at).getTime() + subscription.duration * 24 * 60 * 60 * 1000).toISOString(),
+			}
+		: {
+				isSubscription: false,
+				boost_name: 'Tidak ada',
+				duration: 'Tidak ada',
+				expired_at: null,
+			};
+
+	// Exclude `isSubscription` from the service response
+	const { isSubscription, ...rest } = service;
+
+	// Combine service details with images and subscription
+	const serviceWithDetails = {
+		...rest,
+		images: images.map((img) => img.image),
+		subscription: subscriptionDetails,
+	};
+
+	res.json({ status: 'success', service: serviceWithDetails });
 });
 
 // Create new service with images
@@ -65,26 +149,6 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 			images: newImages.map((img) => img.image),
 		},
 	});
-});
-
-export const getServiceById = asyncHandler(async (req: Request, res: Response) => {
-	const { id } = req.params;
-	const userId = (req as any).user.id;
-
-	const service = await serviceModel.findById(Number(id));
-	if (!service || service.user_id !== userId) {
-		res.status(404).json({ status: 'error', message: 'Layanan tidak ditemukan atau Anda tidak memiliki akses.' });
-		return; // Explicitly end function execution
-	}
-
-	const images = await imageModel.findByServiceId(Number(id));
-
-	const serviceWithImages = {
-		...service,
-		images: images.map((img) => img.image),
-	};
-
-	res.json({ status: 'success', service: serviceWithImages });
 });
 
 // Update existing service with images
