@@ -2,30 +2,63 @@ import { Request, Response } from 'express';
 import asyncHandler from '../../handlers/asyncHandler';
 import imageModel from '../../models/imageModel';
 import serviceModel from '../../models/serviceModel';
+import subscriptionModel from '../../models/subscriptionModel';
 
-// Get All Services with Images
+// Get All Services with Images and Subscription Details
 export const getAllServices = asyncHandler(async (_req: Request, res: Response) => {
 	console.log('Fetching all services');
 
-	// Ambil semua layanan
+	// Fetch all services
 	const services = await serviceModel.findAll();
 
-	// Ambil semua ID layanan
-	const serviceIds = services.map((service) => service.id);
+	if (services.length === 0) {
+		// If no services exist
+		res.json({ status: 'success', message: 'Tidak ada jasa yang tersedia saat ini.', services: [] });
+		return;
+	}
 
-	// Ambil semua gambar yang terkait dengan layanan
+	// Sort services by ID in ascending order
+	const sortedServices = services.sort((a, b) => a.id - b.id);
+
+	// Fetch IDs of all services
+	const serviceIds = sortedServices.map((service) => service.id);
+
+	// Fetch images and subscriptions for all services
 	const images = await imageModel.findByServiceIds(serviceIds);
+	const subscriptions = await Promise.all(
+		serviceIds.map(async (serviceId) => {
+			const subscription = await subscriptionModel.findActiveByServiceId(serviceId);
+			return subscription
+				? {
+						service_id: serviceId,
+						isSubscription: true,
+						boost_name: subscription.boost_name,
+						duration: subscription.duration,
+					}
+				: { service_id: serviceId, isSubscription: false, boost_name: null, duration: null };
+		}),
+	);
 
-	// Gabungkan gambar dengan layanan berdasarkan service_id
-	const servicesWithImages = services.map((service) => ({
-		...service,
-		images: images.filter((image) => image.service_id === service.id).map((img) => img.image),
-	}));
+	// Combine images and subscription details with services
+	const servicesWithDetails = sortedServices.map((service) => {
+		const subscriptionDetail = subscriptions.find((sub) => sub.service_id === service.id);
+		const { isSubscription, ...rest } = service; // Exclude isSubscription from top level
+		return {
+			...rest,
+			images: images.filter((image) => image.service_id === service.id).map((img) => img.image),
+			subscription: {
+				isSubscription: subscriptionDetail?.isSubscription || false, // Include in subscription details
+				boost_name: subscriptionDetail?.boost_name || 'Tidak ada',
+				duration: subscriptionDetail?.duration || 'Tidak ada',
+			},
+		};
+	});
 
-	console.log(`Services found: ${servicesWithImages.length}`);
-	res.json({ status: 'success', services: servicesWithImages });
+	console.log(`Services found: ${servicesWithDetails.length}`);
+	res.json({ status: 'success', services: servicesWithDetails });
 });
 
+// Get Service by ID with Images and Subscription Details
 export const getServiceById = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	console.log(`Fetching service with ID: ${id}`);
@@ -38,15 +71,36 @@ export const getServiceById = asyncHandler(async (req: Request, res: Response) =
 		return;
 	}
 
-	// Fetch associated images for the service
+	// Fetch images for the service
 	const images = await imageModel.findByServiceId(Number(id));
 
-	const serviceWithImages = {
-		...service,
+	// Fetch subscription details for the service
+	const subscription = await subscriptionModel.findActiveByServiceId(Number(id));
+
+	// Map subscription details
+	const subscriptionDetails = subscription
+		? {
+				isSubscription: true,
+				boost_name: subscription.boost_name,
+				duration: subscription.duration,
+			}
+		: {
+				isSubscription: false,
+				boost_name: 'Tidak ada',
+				duration: 'Tidak ada',
+			};
+
+	// Exclude `isSubscription` from the service response
+	const { isSubscription, ...rest } = service;
+
+	// Combine service details with images and subscription
+	const serviceWithDetails = {
+		...rest,
 		images: images.map((img) => img.image),
+		subscription: subscriptionDetails,
 	};
 
-	res.json({ status: 'success', service: serviceWithImages });
+	res.json({ status: 'success', service: serviceWithDetails });
 });
 
 // Update Service Status

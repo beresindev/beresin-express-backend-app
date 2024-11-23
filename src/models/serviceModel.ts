@@ -8,6 +8,8 @@ interface Service {
 	category_id: number;
 	description: string;
 	status: 'pending' | 'decline' | 'accept';
+	min_price: number;
+	max_price: number;
 	created_at?: Date;
 	updated_at?: Date;
 }
