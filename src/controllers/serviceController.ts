@@ -1,44 +1,81 @@
-// controllers/serviceController.ts
 import { Request, Response } from 'express';
 import asyncHandler from '../handlers/asyncHandler';
 import imageModel from '../models/imageModel';
 import serviceModel from '../models/serviceModel';
+import subscriptionModel from '../models/subscriptionModel';
 import userModel from '../models/userModel';
-
-// Import userModel untuk mengambil data pengguna
 
 export const getAllApprovedServices = asyncHandler(async (_req: Request, res: Response) => {
 	try {
-		console.log('Fetching all approved services');
+		console.log('Fetching all approved services with subscription details');
 
-		// Ambil semua layanan yang disetujui
+		// Fetch all approved services
 		const services = await serviceModel.findAllApproved();
 
-		// Ambil semua ID layanan yang disetujui
-		const serviceIds = services.map((service) => service.id);
+		if (services.length === 0) {
+			res.status(404).json({ status: 'error', message: 'Belum ada layanan yang disetujui.' });
+			return;
+		}
 
-		// Ambil semua gambar yang terkait dengan layanan yang disetujui
+		// Fetch related images and users
+		const serviceIds = services.map((service) => service.id);
 		const images = await imageModel.findByServiceIds(serviceIds);
 
-		// Ambil data pengguna berdasarkan user_id pada setiap layanan
 		const userIds = services.map((service) => service.user_id);
-		const users = await userModel.findByIds(userIds); // Menambahkan fungsi findByIds di userModel
+		const users = await userModel.findByIds(userIds);
 
-		// Gabungkan gambar dan nomor telepon dengan layanan berdasarkan service_id
-		const servicesWithImagesAndPhone = services.map((service) => {
+		// Fetch subscription details for each service
+		const subscriptions = await Promise.all(
+			serviceIds.map(async (serviceId) => {
+				const subscription = await subscriptionModel.findActiveByServiceId(serviceId);
+				if (subscription) {
+					// Calculate expired_at based on updated_at and duration
+					const expired_at = new Date(new Date(subscription.updated_at).getTime() + subscription.duration * 24 * 60 * 60 * 1000).toISOString();
+					return {
+						service_id: serviceId,
+						isSubscription: true,
+						boost_name: subscription.boost_name,
+						duration: subscription.duration,
+						expired_at, // Include expired_at
+					};
+				}
+				return {
+					service_id: serviceId,
+					isSubscription: false,
+					boost_name: 'Tidak ada',
+					duration: 'Tidak ada',
+					expired_at: null,
+				};
+			}),
+		);
+
+		// Combine service details with images, user phone, and subscription details
+		const servicesWithDetails = services.map((service) => {
 			const serviceImages = images.filter((image) => image.service_id === service.id).map((img) => img.image);
-			const user = users.find((user) => user.id === service.user_id); // Temukan data pengguna berdasarkan user_id
+			const user = users.find((user) => user.id === service.user_id);
+			const subscriptionDetail = subscriptions.find((sub) => sub.service_id === service.id);
+
+			// Remove isSubscription from top-level service and include it in subscription
+			const { isSubscription, ...serviceWithoutSubscription } = service;
+
 			return {
-				...service,
+				...serviceWithoutSubscription,
+				phone: user ? user.phone : null,
 				images: serviceImages,
-				phone: user ? user.phone : null, // Tambahkan nomor telepon pengguna
+				subscription: subscriptionDetail || {
+					service_id: service.id,
+					isSubscription: false,
+					boost_name: 'Tidak ada',
+					duration: 'Tidak ada',
+					expired_at: null,
+				},
 			};
 		});
 
-		console.log(`Approved services found: ${servicesWithImagesAndPhone.length}`);
-		res.status(200).json({ status: 'success', services: servicesWithImagesAndPhone });
+		console.log(`Approved services with subscription details: ${servicesWithDetails.length}`);
+		res.status(200).json({ status: 'success', services: servicesWithDetails });
 	} catch (error) {
-		console.error('Get All Approved Services error:', error);
-		res.status(500).json({ status: 'error', message: 'Internal server error' });
+		console.error('Error fetching approved services with subscription details:', error);
+		res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server.' });
 	}
 });
