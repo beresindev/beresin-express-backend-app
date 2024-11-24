@@ -115,17 +115,21 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 	const userId = (req as any).user.id;
 	const { name_of_service, category_id, description, min_price, max_price } = req.body;
 
+	// Validasi input
 	const errors = serviceValidationInput({ name_of_service, category_id, description, min_price, max_price });
 	if (errors.length) {
 		res.status(400).json({ status: 'error', message: errors.join(' ') });
 		return;
 	}
 
+	// Format data
 	const formattedName = `Jasa ${capitalize(name_of_service)}`;
 	const formattedDescription = capitalizeFirstWord(description);
 
+	// Proses file upload
 	const files = req.files as Express.Multer.File[];
 
+	// Buat service baru
 	const newService = await serviceModel.create({
 		user_id: userId,
 		name_of_service: formattedName,
@@ -134,19 +138,45 @@ export const createServiceWithImages = asyncHandler(async (req: Request, res: Re
 		min_price: parseCurrency(min_price),
 		max_price: parseCurrency(max_price),
 		status: 'pending',
+		like_count: 0,
+		bookmark_count: 0,
 	});
 
+	// Simpan gambar
 	const imagePaths = saveUploadedImages(files, newService.id);
 	const newImages = await Promise.all(imagePaths.map((imageData) => imageModel.create(imageData)));
 
+	// Ambil detail pengguna
 	const user = await userModel.findById(userId);
 
+	// Cek apakah ada subscription aktif
+	const subscription = await subscriptionModel.findActiveByServiceId(newService.id);
+
+	const subscriptionDetails = subscription
+		? {
+				isSubscription: true,
+				boost_name: subscription.boost_name,
+				duration: subscription.duration,
+				expired_at: new Date(new Date(subscription.updated_at).getTime() + subscription.duration * 24 * 60 * 60 * 1000).toISOString(),
+			}
+		: {
+				isSubscription: false,
+				boost_name: 'Tidak ada',
+				duration: 'Tidak ada',
+				expired_at: null,
+			};
+
+	// Hapus `isSubscription` dari level teratas sebelum respons
+	const { isSubscription, ...serviceWithoutSubscription } = newService;
+
+	// Buat respons dengan struktur yang diinginkan
 	res.status(201).json({
 		status: 'success',
 		service: {
-			...newService,
+			...serviceWithoutSubscription,
 			phone: user?.phone || null,
 			images: newImages.map((img) => img.image),
+			subscription: subscriptionDetails,
 		},
 	});
 });
@@ -157,23 +187,28 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 	const userId = (req as any).user.id;
 	const { name_of_service, category_id, description, min_price, max_price } = req.body;
 
+	// Pastikan service ada dan milik user
 	const service = await serviceModel.findById(Number(id));
 	if (!service || service.user_id !== userId) {
 		res.status(403).json({ status: 'error', message: 'Anda tidak diizinkan untuk mengedit layanan ini.' });
 		return;
 	}
 
+	// Validasi input
 	const errors = serviceValidationInput({ name_of_service, category_id, description, min_price, max_price });
 	if (errors.length) {
 		res.status(400).json({ status: 'error', message: errors.join(' ') });
 		return;
 	}
 
+	// Format data
 	const formattedName = `Jasa ${capitalize(name_of_service)}`;
 	const formattedDescription = capitalizeFirstWord(description);
 
+	// Proses file upload
 	const files = req.files as Express.Multer.File[];
 
+	// Update data service
 	const updatedService = await serviceModel.updateById(Number(id), {
 		name_of_service: formattedName,
 		category_id: Number(category_id),
@@ -182,18 +217,42 @@ export const updateUserService = asyncHandler(async (req: Request, res: Response
 		max_price: parseCurrency(max_price),
 	});
 
+	// Update gambar
 	await imageModel.deleteByServiceId(service.id);
 	const imagePaths = saveUploadedImages(files, service.id);
 	const newImages = await Promise.all(imagePaths.map((imageData) => imageModel.create(imageData)));
 
+	// Ambil detail pengguna
 	const user = await userModel.findById(userId);
 
+	// Cek apakah ada subscription aktif
+	const subscription = await subscriptionModel.findActiveByServiceId(service.id);
+
+	const subscriptionDetails = subscription
+		? {
+				isSubscription: true,
+				boost_name: subscription.boost_name,
+				duration: subscription.duration,
+				expired_at: new Date(new Date(subscription.updated_at).getTime() + subscription.duration * 24 * 60 * 60 * 1000).toISOString(),
+			}
+		: {
+				isSubscription: false,
+				boost_name: 'Tidak ada',
+				duration: 'Tidak ada',
+				expired_at: null,
+			};
+
+	// Hapus `isSubscription` dari level teratas sebelum respons
+	const { isSubscription, ...serviceWithoutSubscription } = updatedService || {};
+
+	// Buat respons dengan struktur yang diinginkan
 	res.json({
 		status: 'success',
 		service: {
-			...updatedService,
+			...serviceWithoutSubscription,
 			phone: user?.phone || null,
 			images: newImages.map((img) => img.image),
+			subscription: subscriptionDetails,
 		},
 	});
 });
