@@ -30,6 +30,10 @@ const serviceModel = {
 		return db<Service>('service').where({ id }).first();
 	},
 
+    findByIds: async (serviceIds: number[]): Promise<Service[]> => {
+        return db<Service>('service').whereIn('id', serviceIds).select('*');
+    },
+
 	findByUserId: async (userId: number): Promise<Service[]> => {
 		return db<Service>('service').where({ user_id: userId }).select('*');
 	},
