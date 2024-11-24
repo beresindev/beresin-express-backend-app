@@ -1,6 +1,6 @@
 import express from 'express';
-import { authenticateToken } from '../../middlewares/authMiddleware';
-import { toggleLike } from '../../controllers/likeController';
+import { authenticateToken } from '../../../middlewares/authMiddleware';
+import { toggleLike } from '../../../controllers/user/likeController';
 
 const router = express.Router();
 

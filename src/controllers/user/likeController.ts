@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import asyncHandler from '../handlers/asyncHandler';
-import likeModel from '../models/likeModel';
-import serviceModel from '../models/serviceModel';
+import asyncHandler from '../../handlers/asyncHandler';
+import likeModel from '../../models/likeModel';
+import serviceModel from '../../models/serviceModel';
 
 // Toggle like untuk service
 export const toggleLike = asyncHandler(async (req: Request, res: Response) => {
