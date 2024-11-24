@@ -13,8 +13,8 @@ import authRoute from './routes/v2/authRoute';
 import categoryRoute from './routes/v2/categoryRoute';
 import serviceRoute from './routes/v2/serviceRoute';
 import statusRoute from './routes/v2/statusRoute';
-import likeRoute from './routes/v2/likeRoute';
-import bookmarkRoute from './routes/v2/bookmarkRoute';
+import likeRoute from './routes/v2/user/userLikeRoute';
+import bookmarkRoute from './routes/v2/user/userBookmarkRoute';
 // Routes untuk User
 import userCategoryRoute from './routes/v2/user/userCategoryRoute';
 import userRoute from './routes/v2/user/userRoute';
@@ -52,12 +52,12 @@ app.use('/api/v2/user', userRoute); // Mengelola profil user
 app.use('/api/v2/user/services', userServiceRoute); // CRUD layanan milik user
 app.use('/api/v2/user/category', userCategoryRoute); // Mengelola kategori layanan untuk user
 app.use('/api/v2/user/subscription-list', userSubscriptionListRoute); // Mengelola daftar langganan
+app.use('/api/v2/user/likes', likeRoute); // Tambahkan rute untuk like
+app.use('/api/v2/user/bookmarks', bookmarkRoute); // Tambahkan rute untuk bookmark
 
 // Route umum yang bisa diakses semua pengguna
 app.use('/api/v2/services', serviceRoute); // Melihat semua layanan yang disetujui
 app.use('/api/v2/category', categoryRoute); // Menampilkan semua kategori
-app.use('/api/v2/likes', likeRoute); // Tambahkan rute untuk like
-app.use('/api/v2/bookmarks', bookmarkRoute); // Tambahkan rute untuk bookmark
 
 // Route khusus admin
 app.use('/api/v2/admin/category', adminCategoryRoute); // CRUD kategori layanan oleh admin
