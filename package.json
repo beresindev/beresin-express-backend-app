@@ -10,6 +10,7 @@
 	},
 	"scripts": {
 		"start": "ts-node src/index.ts",
+        "dev": "nodemon --watch src --exec ts-node src/index.ts",
 		"format": "prettier --check --ignore-path .gitignore .",
 		"format:fix": "prettier --write --ignore-path .gitignore ."
 	},
