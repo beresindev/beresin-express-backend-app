@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import asyncHandler from '../../handlers/asyncHandler';
 import subscriptionListModel from '../../models/subscriptionListModel';
 
-// Get all subscription plans
 export const getAllPlans = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
 	const plans = await subscriptionListModel.findAll();
 	if (plans.length === 0) {
@@ -13,7 +12,6 @@ export const getAllPlans = asyncHandler(async (_req: Request, res: Response): Pr
 	res.json({ status: 'success', plans });
 });
 
-// Get a single subscription plan by ID
 export const getPlanById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
 	const { id } = req.params;
 
@@ -26,11 +24,9 @@ export const getPlanById = asyncHandler(async (req: Request, res: Response): Pro
 	res.json({ status: 'success', plan });
 });
 
-// Create a new subscription plan
 export const createPlan = asyncHandler(async (req: Request, res: Response): Promise<void> => {
 	const { boost_name, duration, price } = req.body;
 
-	// Validate required fields
 	if (!boost_name || !duration || !price) {
 		res.status(400).json({
 			status: 'error',
@@ -44,12 +40,10 @@ export const createPlan = asyncHandler(async (req: Request, res: Response): Prom
 	res.status(201).json({ status: 'success', plan: newPlan });
 });
 
-// Update an existing subscription plan
 export const updatePlan = asyncHandler(async (req: Request, res: Response): Promise<void> => {
 	const { id } = req.params;
 	const { boost_name, duration, price } = req.body;
 
-	// Validate required fields
 	if (!boost_name || !duration || !price) {
 		res.status(400).json({
 			status: 'error',
@@ -67,7 +61,6 @@ export const updatePlan = asyncHandler(async (req: Request, res: Response): Prom
 	res.json({ status: 'success', plan: updatedPlan });
 });
 
-// Delete a subscription plan
 export const deletePlan = asyncHandler(async (req: Request, res: Response): Promise<void> => {
 	const { id } = req.params;
 

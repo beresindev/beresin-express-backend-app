@@ -8,28 +8,23 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 	let { username, name, email, phone, password } = req.body;
 
 	try {
-		// Remove spaces from username
 		username = username.replace(/\s+/g, '');
 
-		// Validate username format (no spaces)
 		if (/\s/.test(req.body.username)) {
 			res.status(400).json({ status: 'error', message: 'Username cannot contain spaces' });
 			return;
 		}
 
-		// Normalize phone number to start with '62'
 		let normalizedPhone = phone;
 		if (phone.startsWith('0')) {
 			normalizedPhone = '62' + phone.slice(1);
 		}
 
-		// Validate phone length
 		if (normalizedPhone.length < 11 || normalizedPhone.length > 13) {
 			res.status(400).json({ status: 'error', message: 'Phone number must be 11-13 characters' });
 			return;
 		}
 
-		// Check if email, username, or phone number already exists
 		const existingUser = (await userModel.findByEmail(email)) || (await userModel.findByUsername(username)) || (await userModel.findByPhone(normalizedPhone));
 
 		if (existingUser) {
@@ -113,7 +108,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 export const logout = async (req: Request, res: Response): Promise<void> => {
 	const token = req.header('Authorization')?.split(' ')[1];
 	if (token) {
-		addToBlacklist(token); // Tambahkan token ke blacklist
+		addToBlacklist(token);
 	}
 	res.json({
 		status: 'success',

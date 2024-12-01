@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import knex from 'knex';
 
-// Pastikan dotenv dijalankan di sini
 dotenv.config({ path: '.env.local' });
 
 const db = knex({

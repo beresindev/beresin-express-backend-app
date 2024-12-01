@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', authenticateToken, allowRoles(['admin']), getAllPlans);
 router.get('/:id', authenticateToken, allowRoles(['admin']), getPlanById);
 router.post('/', authenticateToken, allowRoles(['admin']), createPlan);
-router.put('/:id', authenticateToken, allowRoles(['admin']), updatePlan); // Change PATCH to PUT
+router.put('/:id', authenticateToken, allowRoles(['admin']), updatePlan);
 router.delete('/:id', authenticateToken, allowRoles(['admin']), deletePlan);
 
 export default router;

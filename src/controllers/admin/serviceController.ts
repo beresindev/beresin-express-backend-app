@@ -1,29 +1,32 @@
 import { Request, Response } from 'express';
+import db from '../../configs/knexConfig';
 import asyncHandler from '../../handlers/asyncHandler';
 import imageModel from '../../models/imageModel';
 import serviceModel from '../../models/serviceModel';
 import subscriptionModel from '../../models/subscriptionModel';
 
-// Get All Services with Images and Subscription Details
-export const getAllServices = asyncHandler(async (_req: Request, res: Response) => {
+export const getAllServices = asyncHandler(async (req: Request, res: Response) => {
 	console.log('Fetching all services');
 
-	// Fetch all services
-	const services = await serviceModel.findAll();
+	const { category_id } = req.query;
+
+	let servicesQuery = db('service').select('*');
+
+	if (category_id) {
+		servicesQuery = servicesQuery.where('category_id', Number(category_id));
+	}
+
+	const services = await servicesQuery;
 
 	if (services.length === 0) {
-		// If no services exist
 		res.json({ status: 'success', message: 'Tidak ada jasa yang tersedia saat ini.', services: [] });
 		return;
 	}
 
-	// Sort services by ID in ascending order
 	const sortedServices = services.sort((a, b) => a.id - b.id);
 
-	// Fetch IDs of all services
 	const serviceIds = sortedServices.map((service) => service.id);
 
-	// Fetch images and subscriptions for all services
 	const images = await imageModel.findByServiceIds(serviceIds);
 	const subscriptions = await Promise.all(
 		serviceIds.map(async (serviceId) => {
@@ -34,36 +37,34 @@ export const getAllServices = asyncHandler(async (_req: Request, res: Response) 
 						isSubscription: true,
 						boost_name: subscription.boost_name,
 						duration: subscription.duration,
+						expired_at: subscription.expired_at,
 					}
-				: { service_id: serviceId, isSubscription: false, boost_name: null, duration: null };
+				: { service_id: serviceId, isSubscription: false, boost_name: null, duration: null, expired_at: null };
 		}),
 	);
 
-	// Combine images and subscription details with services
 	const servicesWithDetails = sortedServices.map((service) => {
 		const subscriptionDetail = subscriptions.find((sub) => sub.service_id === service.id);
-		const { isSubscription, ...rest } = service; // Exclude isSubscription from top level
+		const { isSubscription, expired_at, ...rest } = service;
 		return {
 			...rest,
 			images: images.filter((image) => image.service_id === service.id).map((img) => img.image),
 			subscription: {
-				isSubscription: subscriptionDetail?.isSubscription || false, // Include in subscription details
+				isSubscription: subscriptionDetail?.isSubscription || false,
 				boost_name: subscriptionDetail?.boost_name || 'Tidak ada',
 				duration: subscriptionDetail?.duration || 'Tidak ada',
+				expired_at: subscriptionDetail?.expired_at || null,
 			},
 		};
 	});
 
-	console.log(`Services found: ${servicesWithDetails.length}`);
 	res.json({ status: 'success', services: servicesWithDetails });
 });
 
-// Get Service by ID with Images and Subscription Details
 export const getServiceById = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	console.log(`Fetching service with ID: ${id}`);
 
-	// Fetch the service by ID
 	const service = await serviceModel.findById(Number(id));
 	if (!service) {
 		console.log(`Service ${id} not found`);
@@ -71,29 +72,26 @@ export const getServiceById = asyncHandler(async (req: Request, res: Response) =
 		return;
 	}
 
-	// Fetch images for the service
 	const images = await imageModel.findByServiceId(Number(id));
 
-	// Fetch subscription details for the service
 	const subscription = await subscriptionModel.findActiveByServiceId(Number(id));
 
-	// Map subscription details
 	const subscriptionDetails = subscription
 		? {
 				isSubscription: true,
 				boost_name: subscription.boost_name,
 				duration: subscription.duration,
+				expired_at: subscription.expired_at,
 			}
 		: {
 				isSubscription: false,
 				boost_name: 'Tidak ada',
 				duration: 'Tidak ada',
+				expired_at: null, 
 			};
 
-	// Exclude `isSubscription` from the service response
 	const { isSubscription, ...rest } = service;
 
-	// Combine service details with images and subscription
 	const serviceWithDetails = {
 		...rest,
 		images: images.map((img) => img.image),
@@ -103,7 +101,6 @@ export const getServiceById = asyncHandler(async (req: Request, res: Response) =
 	res.json({ status: 'success', service: serviceWithDetails });
 });
 
-// Update Service Status
 export const updateServiceStatus = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const { status } = req.body;
@@ -124,7 +121,6 @@ export const updateServiceStatus = asyncHandler(async (req: Request, res: Respon
 	res.json({ status: 'success', service: updatedService });
 });
 
-// Delete Service by Admin
 export const deleteServiceByAdmin = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	console.log(`Admin deleting service with ID: ${id}`);
