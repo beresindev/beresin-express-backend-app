@@ -1,44 +1,61 @@
 {
-	"id": "beresin-express-backend-app",
-	"displayName": "Solusi Jasa Kampus, Dari Mahasiswa untuk Mahasiswa!",
-	"version": "1.0.0",
-	"private": true,
-	"author": {
-		"name": "BeresIn",
-		"email": "teamberesin@gmail.com",
-		"url": "https://www.backend-beresin.tech/"
-	},
-	"scripts": {
-		"start": "ts-node src/index.ts",
+    "id": "beresin-express-backend-app",
+    "displayName": "Solusi Jasa Kampus, Dari Mahasiswa untuk Mahasiswa!",
+    "version": "1.0.0",
+    "private": true,
+    "author": {
+        "name": "BeresIn",
+        "email": "teamberesin@gmail.com",
+        "url": "http://178.128.21.130:3000/api/status"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/bforbilly24/benu-express-backend-app"
+    },
+    "keywords": [
+        "BeNu",
+        "benu",
+        "found",
+        "lost",
+        "app"
+    ],
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/bforbilly24/benu-express-backend-app/issues"
+    },
+    "homepage": "https://github.com/bforbilly24/benu-express-backend-app#readme",
+    "scripts": {
+        "start": "ts-node src/index.ts",
         "dev": "nodemon --watch src --exec ts-node src/index.ts",
-		"format": "prettier --check --ignore-path .gitignore .",
-		"format:fix": "prettier --write --ignore-path .gitignore ."
-	},
-	"dependencies": {
-		"bcrypt": "^5.1.1",
-		"cors": "^2.8.5",
-		"dotenv": "^16.4.5",
-		"express": "^4.21.1",
-		"express-validator": "^7.2.0",
-		"joi": "^17.13.3",
-		"jsonwebtoken": "^9.0.2",
-		"knex": "^3.1.0",
-		"multer": "^1.4.5-lts.1",
-		"node-cron": "^3.0.3",
-		"pg": "^8.13.1",
-		"pg-promise": "^11.10.1"
-	},
-	"devDependencies": {
-		"@trivago/prettier-plugin-sort-imports": "^4.3.0",
-		"@types/bcrypt": "^5.0.2",
-		"@types/cors": "^2.8.17",
-		"@types/express": "^5.0.0",
-		"@types/jsonwebtoken": "^9.0.7",
-		"@types/knex": "^0.15.2",
-		"@types/multer": "^1.4.12",
-		"@types/node": "^22.8.4",
-		"@types/node-cron": "^3.0.11",
-		"@types/pg-promise": "^0.0.28",
-		"ts-node": "^10.9.2"
-	}
+        "format": "prettier --check --ignore-path .gitignore .",
+        "format:fix": "prettier --write --ignore-path .gitignore ."
+    },
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.21.1",
+        "express-rate-limit": "^7.4.1",
+        "express-validator": "^7.2.0",
+        "joi": "^17.13.3",
+        "jsonwebtoken": "^9.0.2",
+        "knex": "^3.1.0",
+        "multer": "^1.4.5-lts.1",
+        "node-cron": "^3.0.3",
+        "pg": "^8.13.1",
+        "pg-promise": "^11.10.1"
+    },
+    "devDependencies": {
+        "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+        "@types/bcrypt": "^5.0.2",
+        "@types/cors": "^2.8.17",
+        "@types/express": "^5.0.0",
+        "@types/jsonwebtoken": "^9.0.7",
+        "@types/knex": "^0.15.2",
+        "@types/multer": "^1.4.12",
+        "@types/node": "^22.8.4",
+        "@types/node-cron": "^3.0.11",
+        "@types/pg-promise": "^0.0.28",
+        "ts-node": "^10.9.2"
+    }
 }
