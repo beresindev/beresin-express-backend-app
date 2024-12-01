@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import asyncHandler from '../../handlers/asyncHandler';
 import categoryModel from '../../models/categoryModel';
 
+// Create Category
 export const createCategory = asyncHandler(async (req: Request, res: Response) => {
 	const { name_of_category } = req.body;
 	console.log(`Creating category: ${name_of_category}`);
@@ -10,6 +11,7 @@ export const createCategory = asyncHandler(async (req: Request, res: Response) =
 	res.status(201).json({ status: 'success', category: newCategory });
 });
 
+// Get All Categories
 export const getAllCategory = asyncHandler(async (_req: Request, res: Response) => {
 	console.log('Fetching all categories');
 
@@ -19,6 +21,7 @@ export const getAllCategory = asyncHandler(async (_req: Request, res: Response) 
 	res.status(200).json({ status: 'success', categories });
 });
 
+// Update Category
 export const updateCategory = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const { name_of_category } = req.body;
@@ -34,6 +37,7 @@ export const updateCategory = asyncHandler(async (req: Request, res: Response) =
 	res.json({ status: 'success', category: updatedCategory });
 });
 
+// Delete Category
 export const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	console.log(`Deleting category with ID: ${id}`);

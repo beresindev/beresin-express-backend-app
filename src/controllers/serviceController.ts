@@ -9,7 +9,6 @@ export const getAllApprovedServices = asyncHandler(async (_req: Request, res: Re
 	try {
 		console.log('Fetching all approved services with subscription details');
 
-		// Fetch all approved services
 		const services = await serviceModel.findAllApproved();
 
 		if (services.length === 0) {
@@ -17,14 +16,12 @@ export const getAllApprovedServices = asyncHandler(async (_req: Request, res: Re
 			return;
 		}
 
-		// Fetch related images and users
 		const serviceIds = services.map((service) => service.id);
 		const images = await imageModel.findByServiceIds(serviceIds);
 
 		const userIds = services.map((service) => service.user_id);
 		const users = await userModel.findByIds(userIds);
 
-		// Fetch subscription details for each service
 		const subscriptions = await Promise.all(
 			serviceIds.map(async (serviceId) => {
 				const subscription = await subscriptionModel.findActiveByServiceId(serviceId);
@@ -44,13 +41,11 @@ export const getAllApprovedServices = asyncHandler(async (_req: Request, res: Re
 			}),
 		);
 
-		// Combine service details with images, user phone, and subscription details
 		const servicesWithDetails = services.map((service, index) => {
 			const serviceImages = images.filter((image) => image.service_id === service.id).map((img) => img.image);
 			const user = users.find((user) => user.id === service.user_id);
-			const subscriptionDetail = subscriptions[index]; // Menggunakan urutan index untuk mencocokkan subscription
+			const subscriptionDetail = subscriptions[index];
 
-			// Remove isSubscription from top-level service and include it in subscription
 			const { isSubscription, ...serviceWithoutSubscription } = service;
 
 			return {

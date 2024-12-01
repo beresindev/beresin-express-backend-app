@@ -10,7 +10,6 @@ export const getStatus = asyncHandler(async (_req: Request, res: Response) => {
 	let dbLatency = 'unknown';
 
 	try {
-		// Mengukur waktu latency dengan query sederhana
 		const start = Date.now();
 		await db.raw('SELECT 1+1 AS result');
 		const latency = Date.now() - start;
@@ -18,7 +17,6 @@ export const getStatus = asyncHandler(async (_req: Request, res: Response) => {
 		dbReady = true;
 		dbLatency = `${latency} ms`;
 
-		// Mengambil ukuran database hanya jika koneksi berhasil
 		const sizeQuery = await db.raw(`SELECT pg_size_pretty(pg_database_size(current_database())) AS size`);
 		dbSize = sizeQuery.rows[0].size;
 
@@ -28,7 +26,6 @@ export const getStatus = asyncHandler(async (_req: Request, res: Response) => {
 		console.error('Database connection error:', errorMessage);
 	}
 
-	// Mengirim respons berdasarkan status koneksi database
 	res.status(dbReady ? 200 : 500).json({
 		status: dbReady ? 'success' : 'error',
 		message: dbReady ? 'Database connected successfully' : 'Database connection failed',

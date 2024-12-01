@@ -12,9 +12,9 @@ const categoryModel = {
 	},
 
 	findAll: async (): Promise<Category[]> => {
-		console.log('findAll: Mengakses tabel category_services'); // Debug log
+		console.log('findAll: Mengakses tabel category_services'); 
 		const category = await db<Category>('category_services').select('*');
-		console.log('findAll: Kategori yang diambil', category); // Debug log
+		console.log('findAll: Kategori yang diambil', category); 
 		return category;
 	},
 

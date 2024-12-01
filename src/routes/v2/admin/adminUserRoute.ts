@@ -5,7 +5,6 @@ import { allowRoles } from '../../../middlewares/roleMIddleware';
 
 const router = express.Router();
 
-// Rute untuk mengelola pengguna, hanya untuk admin
 router.get('/', authenticateToken, allowRoles(['admin']), getAllUsers);
 router.get('/:id', authenticateToken, allowRoles(['admin']), getUserById);
 router.post('/', authenticateToken, allowRoles(['admin']), createUser);
